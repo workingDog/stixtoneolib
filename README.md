@@ -21,17 +21,17 @@ STIX-2 bundles in JSON format and zip files.
     
 ### Installation and packaging
 
-**stixtoneolib** is a library for use in Scala applications wanting to load STIX-2 objects 
-into a Neo4j graph database. To use the latest release in your application add the following dependency to your build.sbt:
+**stixtoneolib** is a library for use in Scala applications to load STIX-2 objects 
+into a Neo4j graph database. To use the latest release add the following dependency to your *build.sbt*:
 
     libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.1"
 
-To compile from source and assemble the library and all its dependencies into a single fat jar file, 
-use [SBT](http://www.scala-sbt.org/) and type:
+To compile and package from source type:
 
-    sbt assembly
+    sbt package
 
-This will produce "stixtoneolib-0.2.jar" in the "./target/scala-2.12" directory.
+This will produce "stixtoneolib-0.2.jar" in the "./target/scala-2.12" directory. 
+See the *build.sbt* file for the required dependencies.
       
 ### Usage
 
