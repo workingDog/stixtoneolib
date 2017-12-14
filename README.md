@@ -26,7 +26,7 @@ into a Neo4j graph database. To use the latest release in your application add t
 
     libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.1"
 
-To assemble the library and all its dependencies into a single fat jar file, 
+To compile from source and assemble the library and all its dependencies into a single fat jar file, 
 use [SBT](http://www.scala-sbt.org/) and type:
 
     sbt assembly
