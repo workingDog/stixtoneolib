@@ -1,8 +1,8 @@
 
 pomExtra := {
   <scm>
-    <url>https://github.com/workingDog/StixToNeoLib</url>
-    <connection>scm:git:git@github.com:workingDog/StixToNeoLib.git</connection>
+    <url>https://github.com/workingDog/stixtoneolib</url>
+    <connection>scm:git:git@github.com:workingDog/stixtoneolib.git</connection>
   </scm>
     <developers>
       <developer>
