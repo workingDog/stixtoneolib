@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-### changes in 0.2-SNAPSHOT
+### changes in 0.2
 
 * moved loadBundle(source: InputStream) from MarkerSupport to Neo4jFileLoader
 

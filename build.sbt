@@ -15,10 +15,10 @@ libraryDependencies ++= Seq(
 )
 
 assemblyMergeStrategy in assembly := {
-  case PathList(xs @_*) if xs.last.toLowerCase endsWith ".dsa" => MergeStrategy.discard
-  case PathList(xs @_*) if xs.last.toLowerCase endsWith ".sf" => MergeStrategy.discard
-  case PathList(xs @_*) if xs.last.toLowerCase endsWith ".des" => MergeStrategy.discard
-  case PathList(xs @_*) if xs.last endsWith "LICENSES.txt"=> MergeStrategy.discard
+  case PathList(xs@_*) if xs.last.toLowerCase endsWith ".dsa" => MergeStrategy.discard
+  case PathList(xs@_*) if xs.last.toLowerCase endsWith ".sf" => MergeStrategy.discard
+  case PathList(xs@_*) if xs.last.toLowerCase endsWith ".des" => MergeStrategy.discard
+  case PathList(xs@_*) if xs.last endsWith "LICENSES.txt" => MergeStrategy.discard
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
@@ -28,4 +28,4 @@ homepage := Some(url("https://github.com/workingDog/StixToNeoLib"))
 
 licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-assemblyJarName in assembly := "stixtoneolib-0.1.jar"
+assemblyJarName in assembly := "stixtoneolib-" + version.value + ".jar"
