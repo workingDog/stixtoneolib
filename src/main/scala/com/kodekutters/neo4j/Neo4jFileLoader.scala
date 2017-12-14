@@ -10,16 +10,45 @@ import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.language.{implicitConversions, postfixOps}
 
+
+object Neo4jFileLoader {
+
+  /**
+    * read a Bundle from the input source
+    *
+    * @param source the input InputStream
+    * @param logger the optional logger
+    * @return a Bundle option
+    */
+  def readBundle(source: InputStream, logger: Option[Logger] = None): Option[Bundle] = {
+    // read a STIX bundle from the InputStream
+    val jsondoc = Source.fromInputStream(source).mkString
+    Option(Json.parse(jsondoc)) match {
+      case None => logger.map(_.error("could not parse JSON in file")); None
+      case Some(js) =>
+        // create a bundle object from it
+        Json.fromJson[Bundle](js).asOpt match {
+          case None => logger.map(_.error("ERROR invalid bundle JSON in file")); None
+          case Some(bundle) => Option(bundle)
+        }
+    }
+  }
+
+  def apply(dbDir: String) = new Neo4jFileLoader(dbDir)
+
+}
+
 /**
   * loads files of Stix-2.0 objects, SDO, SRO and associated data types into a Neo4j graph database
   *
   * @author R. Wathelet June 2017, revised December 2017
-  *
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
   */
 class Neo4jFileLoader(dbDir: String) {
 
-  private val logger = Logger[Neo4jFileLoader]
+  import Neo4jFileLoader._
+
+  private implicit val logger = Logger[Neo4jFileLoader]
 
   /**
     * the STIX-2 Neo4j loader
@@ -34,26 +63,6 @@ class Neo4jFileLoader(dbDir: String) {
     loader.nodesMaker.counter.foreach({ case (k, v) => logger.info(k + ": " + v) })
     // sum the SDO, SRO and StixObj
     logger.info("total: " + loader.nodesMaker.counter.foldLeft(0)(_ + _._2))
-  }
-
-  /**
-    * read a Bundle from the input source
-    *
-    * @param source the input InputStream
-    * @return a Bundle option
-    */
-  def loadBundle(source: InputStream): Option[Bundle] = {
-    // read a STIX bundle from the InputStream
-    val jsondoc = Source.fromInputStream(source).mkString
-    Option(Json.parse(jsondoc)) match {
-      case None => logger.error("could not parse JSON"); None
-      case Some(js) =>
-        // create a bundle object from it
-        Json.fromJson[Bundle](js).asOpt match {
-          case None => logger.error("ERROR invalid bundle JSON in zip file"); None
-          case Some(bundle) => Option(bundle)
-        }
-    }
   }
 
   /**
@@ -93,7 +102,7 @@ class Neo4jFileLoader(dbDir: String) {
     val rootZip = new java.util.zip.ZipFile(inFile)
     // for each entry file containing a single bundle
     rootZip.entries.asScala.filter(_.getName.toLowerCase.endsWith(".json")).foreach(f => {
-      loadBundle(rootZip.getInputStream(f)) match {
+      readBundle(rootZip.getInputStream(f)) match {
         case Some(bundle) =>
           logger.info("file: " + f.getName + " --> " + inFile)
           loader.loadIntoNeo4j(bundle)
