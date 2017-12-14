@@ -3,7 +3,7 @@ Change Log
 
 ### changes in 0.2
 
-* moved loadBundle(source: InputStream) from MarkerSupport to Neo4jFileLoader
+* changed loadBundle() from MarkerSupport to be readBundle() Neo4jFileLoader
 
 ### changes in 0.1
 
