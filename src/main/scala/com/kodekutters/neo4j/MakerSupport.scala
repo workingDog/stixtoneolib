@@ -1,16 +1,13 @@
 package com.kodekutters.neo4j
 
-import java.io.InputStream
 import java.util.UUID
 
 import com.kodekutters.stix._
-import com.kodekutters.stix.Bundle
 import com.typesafe.scalalogging.Logger
 import org.neo4j.graphdb.Label.label
 import org.neo4j.graphdb.{Node, RelationshipType}
 import play.api.libs.json.Json
 
-import scala.io.Source
 import scala.language.implicitConversions
 import scala.language.postfixOps
 
@@ -33,26 +30,6 @@ object MakerSupport {
     cust match {
       case Some(x) => Json.stringify(Json.toJson[CustomProps](x))
       case None => ""
-    }
-  }
-
-  /**
-    * read a Bundle from the input source
-    *
-    * @param source the input InputStream
-    * @return a Bundle option
-    */
-  def loadBundle(source: InputStream): Option[Bundle] = {
-    // read a STIX bundle from the InputStream
-    val jsondoc = Source.fromInputStream(source).mkString
-    Option(Json.parse(jsondoc)) match {
-      case None => logger.error("could not parse JSON"); None
-      case Some(js) =>
-        // create a bundle object from it
-        Json.fromJson[Bundle](js).asOpt match {
-          case None => logger.error("ERROR invalid bundle JSON in zip file"); None
-          case Some(bundle) => Option(bundle)
-        }
     }
   }
 

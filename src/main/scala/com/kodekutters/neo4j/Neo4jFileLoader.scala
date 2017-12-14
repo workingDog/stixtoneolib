@@ -1,6 +1,6 @@
 package com.kodekutters.neo4j
 
-import java.io.File
+import java.io.{File, InputStream}
 
 import com.kodekutters.stix.{Bundle, _}
 import com.typesafe.scalalogging.Logger
@@ -19,8 +19,6 @@ import scala.language.{implicitConversions, postfixOps}
   */
 class Neo4jFileLoader(dbDir: String) {
 
-  import MakerSupport._
-
   private val logger = Logger[Neo4jFileLoader]
 
   /**
@@ -36,6 +34,26 @@ class Neo4jFileLoader(dbDir: String) {
     loader.nodesMaker.counter.foreach({ case (k, v) => logger.info(k + ": " + v) })
     // sum the SDO, SRO and StixObj
     logger.info("total: " + loader.nodesMaker.counter.foldLeft(0)(_ + _._2))
+  }
+
+  /**
+    * read a Bundle from the input source
+    *
+    * @param source the input InputStream
+    * @return a Bundle option
+    */
+  def loadBundle(source: InputStream): Option[Bundle] = {
+    // read a STIX bundle from the InputStream
+    val jsondoc = Source.fromInputStream(source).mkString
+    Option(Json.parse(jsondoc)) match {
+      case None => logger.error("could not parse JSON"); None
+      case Some(js) =>
+        // create a bundle object from it
+        Json.fromJson[Bundle](js).asOpt match {
+          case None => logger.error("ERROR invalid bundle JSON in zip file"); None
+          case Some(bundle) => Option(bundle)
+        }
+    }
   }
 
   /**
