@@ -31,7 +31,7 @@ use [SBT](http://www.scala-sbt.org/) and type:
 
     sbt assembly
 
-This will produce "stixtoneolib-0.2.jar" in the "./target/scala-2.12" directory.
+This will produce "stixtoneolib-0.2-SNAPSHOT.jar" in the "./target/scala-2.12" directory.
       
 ### Usage
 
