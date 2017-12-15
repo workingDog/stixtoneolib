@@ -81,4 +81,4 @@ used as both the source and the target of the relation. The name of the Neo4j re
 The name of the Neo4j relation representing an SRO is made from the SRO *cleaned* relationship_type property.
 
 
-
+### Observable and Extension nodes and relations

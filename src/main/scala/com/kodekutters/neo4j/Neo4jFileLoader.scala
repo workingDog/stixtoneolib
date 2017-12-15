@@ -10,7 +10,9 @@ import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.language.{implicitConversions, postfixOps}
 
-
+/**
+  * Read STIX-2 objects from files and load them into a Neo4j database
+  */
 object Neo4jFileLoader {
 
   /**
