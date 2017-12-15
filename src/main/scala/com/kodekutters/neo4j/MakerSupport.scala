@@ -69,7 +69,12 @@ object MakerSupport {
     }
   }
 
-  // create the kill_chain_phases nodes and relationships
+  /**
+    * create the kill_chain_phases nodes and relationships
+    * @param sourceNode the parent node
+    * @param kill_chain_phasesOpt the possible list of kill_chain objects
+    * @param ids the ids representing the kill_chain object
+    */
   def createKillPhases(sourceNode: Node, kill_chain_phasesOpt: Option[List[KillChainPhase]], ids: Array[String])(implicit logger: Logger) = {
     kill_chain_phasesOpt.foreach(kill_chain_phases => {
       for ((kp, i) <- kill_chain_phases.zipWithIndex) {
@@ -92,7 +97,12 @@ object MakerSupport {
     })
   }
 
-  // create the external_references nodes and relationships
+  /**
+    * create the external_references nodes and relationships
+    * @param idString the parent node id
+    * @param external_referencesOpt the possible list of ExternalReference objects
+    * @param ids the ids representing the ExternalReferences
+    */
   def createExternRefs(idString: String, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String])(implicit logger: Logger): Unit = {
     val sourceNodeOpt = transaction {
       Neo4jDbService.idIndex.get("id", idString).getSingle
@@ -103,7 +113,12 @@ object MakerSupport {
     }
   }
 
-  // create the external_references nodes and relationships
+  /**
+    * create the external_references nodes and relationships
+    * @param sourceNode the parent node
+    * @param external_referencesOpt the possible list of ExternalReference
+    * @param ids the ids representing the ExternalReferences
+    */
   def createExternRefs(sourceNode: Node, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String])(implicit logger: Logger): Unit = {
     external_referencesOpt.foreach(external_references => {
       for ((extRef, i) <- external_references.zipWithIndex) {
@@ -131,7 +146,12 @@ object MakerSupport {
     })
   }
 
-  // create the granular_markings nodes and relationships
+  /**
+    * create the granular_markings nodes and relationships
+    * @param idString the parent node id
+    * @param granular_markingsOpt the possible list of GranularMarking
+    * @param ids the ids representing the GranularMarking
+    */
   def createGranulars(idString: String, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String])(implicit logger: Logger): Unit = {
     val sourceNodeOpt = transaction {
       Neo4jDbService.idIndex.get("id", idString).getSingle
@@ -142,7 +162,12 @@ object MakerSupport {
     }
   }
 
-  // create the granular_markings nodes and relationships
+  /**
+    * create the granular_markings nodes and relationships
+    * @param sourceNode the parent node
+    * @param granular_markingsOpt the possible list of GranularMarking
+    * @param ids the ids representing the GranularMarking
+    */
   def createGranulars(sourceNode: Node, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String])(implicit logger: Logger): Unit = {
     granular_markingsOpt.foreach(granular_markings => {
       for ((gra, i) <- granular_markings.zipWithIndex) {
@@ -166,7 +191,12 @@ object MakerSupport {
     })
   }
 
-  // create relations between the idString and the list of object_refs SDO id
+  /**
+    * create relations between the idString and the list of object_refs SDO id
+    * @param idString the parent node id
+    * @param object_refs the possible list of Identifier
+    * @param relName the relation name
+    */
   def createRelToObjRef(idString: String, object_refs: Option[List[Identifier]], relName: String)(implicit logger: Logger) = {
     for (s <- object_refs.getOrElse(List.empty)) {
       transaction {
@@ -177,6 +207,11 @@ object MakerSupport {
     }
   }
 
+  /**
+    * create a CREATED_BY relation between the sourceId and the target
+    * @param sourceId the parent node id
+    * @param tgtOpt the possible target Identifier
+    */
   def createdByRel(sourceId: String, tgtOpt: Option[Identifier])(implicit logger: Logger) = {
     tgtOpt.map(tgt => {
       transaction {

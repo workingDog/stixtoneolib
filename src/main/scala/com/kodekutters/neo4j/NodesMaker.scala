@@ -23,7 +23,7 @@ class NodesMaker()(implicit logger: Logger) {
   /**
     * create nodes and embedded relations from a Stix object
     *
-    * @param obj the stix object from which to create Neo4j nodes
+    * @param obj the stix object (SDO, SRO or STixObj) from which to create Neo4j nodes
     */
   def createNodes(obj: StixObj) = {
     obj match {
