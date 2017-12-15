@@ -97,7 +97,7 @@ class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
     // get the zip file
     val rootZip = new java.util.zip.ZipFile(inFile)
     // for each entry file containing a single bundle
-    rootZip.entries.asScala.filter(_.getName.toLowerCase.endsWith(".json")).foreach(f => {
+    rootZip.entries.asScala.foreach(f => {
       readBundle(rootZip.getInputStream(f)) match {
         case Some(bundle) =>
           logger.info("file: " + f.getName + " --> " + inFile)
@@ -159,7 +159,7 @@ class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
     // get the input zip file
     val rootZip = new java.util.zip.ZipFile(inFile)
     // for each entry file
-    rootZip.entries.asScala.filter(_.getName.toLowerCase.endsWith(".json")).foreach(f => {
+    rootZip.entries.asScala.foreach(f => {
       // go thru the file twice, on first pass process the nodes, on second pass relations
       for (pass <- 1 to 2) {
         // get the lines from the entry file
