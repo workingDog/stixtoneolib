@@ -3,10 +3,10 @@ package com.kodekutters.neo4j
 import java.io.File
 
 import com.typesafe.scalalogging.Logger
+
 import org.neo4j.graphdb.{GraphDatabaseService, Node}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.index.Index
-import org.neo4j.graphdb.security.URLAccessRule
 
 import scala.util.Try
 
@@ -30,11 +30,6 @@ object Neo4jDbService {
     * @param dbDir dbDir the directory of the database
     */
   def init(dbDir: String): Unit = {
-
-//    val protocol = ""
-//    val rule: URLAccessRule = _
-// .addURLAccessRule(protocol, rule)
-
     // start a neo4j database server
     // will create a new database or open the existing one
     Try(graphDB = new GraphDatabaseFactory().newEmbeddedDatabase(new File(dbDir))).toOption match {

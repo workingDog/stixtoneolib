@@ -45,7 +45,7 @@ object MakerSupport {
 
   // the Neo4j :LABEL and :TYPE cannot deal with "-", so clean and replace with "_"
   def asCleanLabel(s: String) = s.replace(",", " ").replace(":", " ").replace("\'", " ").
-    replace(";", " ").replace("\"", "").replace("\\", "").
+    replace(";", " ").replace("\"", "").replace("\\", "").replace(".", " ").
     replace("\n", "").replace("\r", "").replace("-", "_")
 
   // create the marking definition node and its relationship

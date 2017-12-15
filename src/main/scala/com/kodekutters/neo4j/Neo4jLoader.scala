@@ -38,13 +38,15 @@ class Neo4jLoader(dbDir: String) {
   /**
     * load a Stix object to a Neo4j database
     *
-    * @param stix the Stix object
+    * @param theStix the Stix object
     */
-  def loadIntoNeo4j(stix: StixObj) = {
-    // first create the nodes associated with the stix and any internal relations
-    nodesMaker.createNodes(stix)
-    // create the relations that depends on nodes
-    relsMaker.createRelations(stix)
+  def loadIntoNeo4j(theStix: StixObj) = {
+    theStix match {
+      case stix: SRO => relsMaker.createRelations(stix)
+      case stix: SDO => nodesMaker.createNodes(stix)
+      case stix: StixObj => nodesMaker.createNodes(stix)
+      case _ => logger.error("cannot load STIX ---> not of SDO, SRO or StixObj" )
+    }
   }
 
   /**
