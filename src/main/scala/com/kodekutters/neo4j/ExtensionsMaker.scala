@@ -15,8 +15,6 @@ object ExtensionsMaker {
   import Neo4jDbService._
   import MakerSupport._
 
-  private val logger = Logger("ExtensionsMaker")
-
   /**
     * create the Extension nodes and embedded relations for the Observable object
     *
@@ -24,7 +22,7 @@ object ExtensionsMaker {
     * @param extMapOpt  the map of Extensions
     * @param ext_ids    the map of Extensions ids
     */
-  def create(sourceNode: Node, extMapOpt: Option[Map[String, Extension]], ext_ids: Map[String, String]) = {
+  def create(sourceNode: Node, extMapOpt: Option[Map[String, Extension]], ext_ids: Map[String, String])(implicit logger: Logger) = {
     extMapOpt.foreach(extMap => {
       // for each extension
       for ((k, extention) <- extMap) {
@@ -105,7 +103,7 @@ object ExtensionsMaker {
     })
   }
 
-  private def createAltDataStream(fromNode: Node, altStreamOpt: Option[List[AlternateDataStream]], ids: Array[String]) = {
+  private def createAltDataStream(fromNode: Node, altStreamOpt: Option[List[AlternateDataStream]], ids: Array[String])(implicit logger: Logger) = {
     altStreamOpt.foreach(altStream => {
       for ((kp, i) <- altStream.zipWithIndex) {
         val hashes_ids: Map[String, String] = (for (s <- kp.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
@@ -127,7 +125,7 @@ object ExtensionsMaker {
     })
   }
 
-  private def createExifTags(fromNode: Node, exitTagsOpt: Option[Map[String, Either[Int, String]]], ids: Map[String, String]) = {
+  private def createExifTags(fromNode: Node, exitTagsOpt: Option[Map[String, Either[Int, String]]], ids: Map[String, String])(implicit logger: Logger) = {
     exitTagsOpt.foreach(exitTags =>
       for ((k, obs) <- exitTags) {
         // either a int or string

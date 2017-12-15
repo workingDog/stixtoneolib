@@ -34,8 +34,6 @@ object Neo4jFileLoader {
     }
   }
 
-  def apply(dbDir: String) = new Neo4jFileLoader(dbDir)
-
 }
 
 /**
@@ -44,11 +42,9 @@ object Neo4jFileLoader {
   * @author R. Wathelet June 2017, revised December 2017
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
   */
-class Neo4jFileLoader(dbDir: String) {
+class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
 
   import Neo4jFileLoader._
-
-  private implicit val logger = Logger[Neo4jFileLoader]
 
   /**
     * the STIX-2 Neo4j loader

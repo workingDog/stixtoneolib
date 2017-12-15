@@ -11,9 +11,7 @@ import scala.language.{implicitConversions, postfixOps}
   * @author R. Wathelet June 2017, revised December 2017
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
   */
-class Neo4jLoader(dbDir: String) {
-
-  private val logger = Logger[Neo4jLoader]
+class Neo4jLoader(dbDir: String)(implicit logger: Logger) {
 
   // initialize the neo4j db services
   Neo4jDbService.init(dbDir)
@@ -45,7 +43,7 @@ class Neo4jLoader(dbDir: String) {
       case stix: SRO => relsMaker.createRelations(stix)
       case stix: SDO => nodesMaker.createNodes(stix)
       case stix: StixObj => nodesMaker.createNodes(stix)
-      case _ => logger.error("cannot load STIX ---> not of SDO, SRO or StixObj" )
+      case _ => logger.error("cannot load STIX becuse not of SDO, SRO or StixObj type")
     }
   }
 

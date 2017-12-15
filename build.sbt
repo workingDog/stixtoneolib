@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
   "com.github.workingDog" %% "scalastix" % "0.7"
 )
 
+test in assembly := {}
+
 assemblyMergeStrategy in assembly := {
   case PathList(xs@_*) if xs.last.toLowerCase endsWith ".dsa" => MergeStrategy.discard
   case PathList(xs@_*) if xs.last.toLowerCase endsWith ".sf" => MergeStrategy.discard

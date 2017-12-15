@@ -15,8 +15,6 @@ object ObservablesMaker {
   import Neo4jDbService._
   import MakerSupport._
 
-  private val logger = Logger("ObservablesMaker")
-
   /**
     * create the Observables nodes and relations for the parent ObservedData SDO node
     *
@@ -24,7 +22,7 @@ object ObservablesMaker {
     * @param objects    the Observables
     * @param obsIds     the Observables ids
     */
-  def create(sourceNode: Node, objects: Map[String, Observable], obsIds: Map[String, String]) = {
+  def create(sourceNode: Node, objects: Map[String, Observable], obsIds: Map[String, String])(implicit logger: Logger) = {
     // create the observable nodes and relations for each Observable
     for ((k, obs) <- objects) {
       // create the extensions ids
@@ -55,7 +53,7 @@ object ObservablesMaker {
     }
   }
 
-  private def specify(node: Node, observable: Observable) = {
+  private def specify(node: Node, observable: Observable)(implicit logger: Logger) = {
     // add the specific attributes to the observable node
     observable match {
       case x: Artifact =>
@@ -269,7 +267,7 @@ object ObservablesMaker {
     }
   }
 
-  private def createEnv(sourceNode: Node, envOpt: Option[Map[String, String]], ids: Map[String, String]) = {
+  private def createEnv(sourceNode: Node, envOpt: Option[Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     envOpt.foreach(env =>
       for ((k, obs) <- env) {
         val nodeOpt = transaction {
@@ -287,7 +285,7 @@ object ObservablesMaker {
     )
   }
 
-  private def createHeaders(sourceNode: Node, headersOpt: Option[Map[String, String]], ids: Map[String, String]) = {
+  private def createHeaders(sourceNode: Node, headersOpt: Option[Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     headersOpt.foreach(headers =>
       for ((k, obs) <- headers) {
         val nodeOpt = transaction {
@@ -305,7 +303,7 @@ object ObservablesMaker {
     )
   }
 
-  private def createIpfix(sourceNode: Node, ipfixOpt: Option[Map[String, Either[Int, String]]], ids: Map[String, String]) = {
+  private def createIpfix(sourceNode: Node, ipfixOpt: Option[Map[String, Either[Int, String]]], ids: Map[String, String])(implicit logger: Logger) = {
     ipfixOpt.foreach(ipfix =>
       for ((k, obs) <- ipfix) {
         // either a int or string

@@ -7,12 +7,10 @@ import com.typesafe.scalalogging.Logger
 /**
   * create Neo4j relations from a STIX-2 objects
   */
-class RelationsMaker() {
+class RelationsMaker()(implicit logger: Logger) {
 
   import Neo4jDbService._
   import MakerSupport._
-
-  private val logger = Logger[RelationsMaker]
 
   /**
     * create relations from the stix object

@@ -12,12 +12,10 @@ import scala.collection.mutable
   * create Neo4j nodes and internal relations from a STIX-2 object
   *
   */
-class NodesMaker() {
+class NodesMaker()(implicit logger: Logger) {
 
   import Neo4jDbService._
   import MakerSupport._
-
-  private val logger = Logger[NodesMaker]
 
   // counting the nodes by type
   val counter = mutable.Map("SDO" -> 0, "SRO" -> 0, "StixObj" -> 0)

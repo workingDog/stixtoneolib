@@ -16,8 +16,6 @@ import scala.util.Try
   */
 object Neo4jDbService {
 
-  private val logger = Logger("Neo4jDbService")
-
   var graphDB: GraphDatabaseService = _
 
   var idIndex: Index[Node] = _
@@ -29,16 +27,17 @@ object Neo4jDbService {
     *
     * @param dbDir dbDir the directory of the database
     */
-  def init(dbDir: String): Unit = {
+  def init(dbDir: String)(implicit logger: Logger): Unit = {
     // start a neo4j database server
     // will create a new database or open the existing one
-    Try(graphDB = new GraphDatabaseFactory().newEmbeddedDatabase(new File(dbDir))).toOption match {
+    val factory = new GraphDatabaseFactory()
+    Try(graphDB = factory.newEmbeddedDatabase(new File(dbDir))).toOption match {
       case None =>
         logger.error("cannot access " + dbDir + ", ensure no other process is using this database, and that the directory is writable")
         System.exit(1)
       case Some(gph) =>
         registerShutdownHook()
-        logger.info("connected")
+        logger.info("connected to Neo4j " + factory.getEdition + " at: " + dbDir)
         transaction {
           idIndex = graphDB.index.forNodes("id")
         }.getOrElse(logger.error("could not process indexing in DbService.init()"))

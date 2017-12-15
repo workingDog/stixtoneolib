@@ -18,8 +18,6 @@ object MakerSupport {
 
   import Neo4jDbService._
 
-  private val logger = Logger("MakerSupport")
-
   // convenience implicit transformation from a string to a RelationshipType
   implicit def string2relationshipType(x: String): RelationshipType = RelationshipType.withName(x)
 
@@ -49,7 +47,7 @@ object MakerSupport {
     replace("\n", "").replace("\r", "").replace("-", "_")
 
   // create the marking definition node and its relationship
-  def createMarkingDef(sourceNode: Node, definition: MarkingObject, definition_id: String) = {
+  def createMarkingDef(sourceNode: Node, definition: MarkingObject, definition_id: String)(implicit logger: Logger) = {
     val mark: String = definition match {
       case s: StatementMarking => s.statement
       case s: TPLMarking => s.tlp.value
@@ -72,7 +70,7 @@ object MakerSupport {
   }
 
   // create the kill_chain_phases nodes and relationships
-  def createKillPhases(sourceNode: Node, kill_chain_phasesOpt: Option[List[KillChainPhase]], ids: Array[String]) = {
+  def createKillPhases(sourceNode: Node, kill_chain_phasesOpt: Option[List[KillChainPhase]], ids: Array[String])(implicit logger: Logger) = {
     kill_chain_phasesOpt.foreach(kill_chain_phases => {
       for ((kp, i) <- kill_chain_phases.zipWithIndex) {
         val stixNodeOpt = transaction {
@@ -95,7 +93,7 @@ object MakerSupport {
   }
 
   // create the external_references nodes and relationships
-  def createExternRefs(idString: String, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String]): Unit = {
+  def createExternRefs(idString: String, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String])(implicit logger: Logger): Unit = {
     val sourceNodeOpt = transaction {
       Neo4jDbService.idIndex.get("id", idString).getSingle
     }
@@ -106,7 +104,7 @@ object MakerSupport {
   }
 
   // create the external_references nodes and relationships
-  def createExternRefs(sourceNode: Node, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String]): Unit = {
+  def createExternRefs(sourceNode: Node, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String])(implicit logger: Logger): Unit = {
     external_referencesOpt.foreach(external_references => {
       for ((extRef, i) <- external_references.zipWithIndex) {
         val hashes_ids: Map[String, String] = (for (s <- extRef.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
@@ -134,7 +132,7 @@ object MakerSupport {
   }
 
   // create the granular_markings nodes and relationships
-  def createGranulars(idString: String, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String]): Unit = {
+  def createGranulars(idString: String, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String])(implicit logger: Logger): Unit = {
     val sourceNodeOpt = transaction {
       Neo4jDbService.idIndex.get("id", idString).getSingle
     }
@@ -145,7 +143,7 @@ object MakerSupport {
   }
 
   // create the granular_markings nodes and relationships
-  def createGranulars(sourceNode: Node, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String]): Unit = {
+  def createGranulars(sourceNode: Node, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String])(implicit logger: Logger): Unit = {
     granular_markingsOpt.foreach(granular_markings => {
       for ((gra, i) <- granular_markings.zipWithIndex) {
         val stixNodeOpt = transaction {
@@ -169,7 +167,7 @@ object MakerSupport {
   }
 
   // create relations between the idString and the list of object_refs SDO id
-  def createRelToObjRef(idString: String, object_refs: Option[List[Identifier]], relName: String) = {
+  def createRelToObjRef(idString: String, object_refs: Option[List[Identifier]], relName: String)(implicit logger: Logger) = {
     for (s <- object_refs.getOrElse(List.empty)) {
       transaction {
         val sourceNode = Neo4jDbService.idIndex.get("id", idString).getSingle
@@ -179,7 +177,7 @@ object MakerSupport {
     }
   }
 
-  def createdByRel(sourceId: String, tgtOpt: Option[Identifier]) = {
+  def createdByRel(sourceId: String, tgtOpt: Option[Identifier])(implicit logger: Logger) = {
     tgtOpt.map(tgt => {
       transaction {
         val sourceNode = Neo4jDbService.idIndex.get("id", sourceId).getSingle
@@ -189,7 +187,7 @@ object MakerSupport {
     })
   }
 
-  def createLangContents(sourceNode: Node, contents: Map[String, Map[String, String]], ids: Map[String, String]) = {
+  def createLangContents(sourceNode: Node, contents: Map[String, Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     for ((k, obs) <- contents) {
       val obs_contents_ids: Map[String, String] = (for (s <- obs.keySet) yield s -> UUID.randomUUID().toString).toMap
       val tgtNodeOpt = transaction {
@@ -210,7 +208,7 @@ object MakerSupport {
     }
   }
 
-  private def createTranslations(sourceNode: Node, translations: Map[String, String], ids: Map[String, String]) = {
+  private def createTranslations(sourceNode: Node, translations: Map[String, String], ids: Map[String, String])(implicit logger: Logger) = {
     for ((k, obs) <- translations) {
       val tgtNodeOpt = transaction {
         val node = Neo4jDbService.graphDB.createNode(label("translations"))
@@ -230,7 +228,7 @@ object MakerSupport {
   }
 
   // create the hashes objects and their relationship to the theNode
-  def createHashes(theNode: Node, hashesOpt: Option[Map[String, String]], ids: Map[String, String]) = {
+  def createHashes(theNode: Node, hashesOpt: Option[Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     hashesOpt.foreach(hashes =>
       for ((k, obs) <- hashes) {
         val hashNodeOpt = transaction {
