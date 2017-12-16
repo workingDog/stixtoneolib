@@ -33,6 +33,14 @@ To compile and package from source, type:
 This will produce "stixtoneolib-0.2.jar" in the "./target/scala-2.12" directory. 
 See the *build.sbt* file for the required dependencies.
       
+To publish the library to your local (Ivy) repository, simply type:
+
+    sbt publishLocal
+
+Then put this in your Scala application *build.sbt* file:
+
+    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.2" 
+       
 ### Usage
 
 The main class for loading STIX-2 objects into a Neo4j database is **Neo4jLoader**.
@@ -58,6 +66,15 @@ In addition the **Neo4jFileLoader** helper class has four methods for processing
 An example use of **"stixtoneolib"** is [StixToNeoDB](https://github.com/workingDog/StixToNeoDB) 
 which loads files of STIX-2 bundles into a Neo4j database.
 
+### Dependencies and requirements
+
+Depends on the [ScalaStix](https://github.com/workingDog/scalastix) and 
+the [Neo4j Community](https://mvnrepository.com/artifact/org.neo4j/neo4j) jar file.
+
+See also the *build.sbt* file.
+
+Java 8 is required and Neo4j Community Edition should be installed to process the results.
+
                     
 ### References
  
@@ -69,15 +86,6 @@ which loads files of STIX-2 bundles into a Neo4j database.
 
 4) [STIX-2](https://oasis-open.github.io/cti-documentation/)
 
-
-### Dependencies and requirements
-
-Depends on the [ScalaStix](https://github.com/workingDog/scalastix) and 
-the [Neo4j Community](https://mvnrepository.com/artifact/org.neo4j/neo4j) jar file.
-
-See also the *build.sbt* file.
-
-Java 8 is required and Neo4j Community Edition should be installed to process the results.
 
 ### Status
 
