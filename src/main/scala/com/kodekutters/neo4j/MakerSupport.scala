@@ -46,7 +46,12 @@ object MakerSupport {
     replace(";", " ").replace("\"", "").replace("\\", "").replace(".", " ").
     replace("\n", "").replace("\r", "").replace("-", "_")
 
-  // create the marking definition node and its relationship
+  /**
+    * create the marking definition node and its relationship
+    * @param sourceNode the parent node
+    * @param definition the marking object
+    * @param definition_id the marking object id
+    */
   def createMarkingDef(sourceNode: Node, definition: MarkingObject, definition_id: String)(implicit logger: Logger) = {
     val mark: String = definition match {
       case s: StatementMarking => s.statement

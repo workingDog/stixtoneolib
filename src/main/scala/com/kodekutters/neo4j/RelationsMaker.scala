@@ -2,12 +2,13 @@ package com.kodekutters.neo4j
 
 import com.kodekutters.stix._
 import com.typesafe.scalalogging.Logger
+import org.slf4j.helpers.NOPLogger
 
 
 /**
   * create Neo4j relations from a STIX-2 objects
   */
-class RelationsMaker()(implicit logger: Logger) {
+class RelationsMaker()(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
 
   import Neo4jDbService._
   import MakerSupport._

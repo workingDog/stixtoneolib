@@ -2,6 +2,7 @@ package com.kodekutters.neo4j
 
 import com.kodekutters.stix.{Bundle, _}
 import com.typesafe.scalalogging.Logger
+import org.slf4j.helpers.NOPLogger
 
 import scala.language.{implicitConversions, postfixOps}
 
@@ -10,14 +11,18 @@ import scala.language.{implicitConversions, postfixOps}
   *
   * @author R. Wathelet June 2017, revised December 2017
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
+  * @param logger the implicit Logger, default to NOPLogger if absent
   */
-class Neo4jLoader(dbDir: String)(implicit logger: Logger) {
+class Neo4jLoader(dbDir: String)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
+
+  // a counter of SDO, SRO and StixObj
+  val counter = Counter()
 
   // initialize the neo4j db services
   Neo4jDbService.init(dbDir)
 
   // the nodes maker for creating nodes and their embedded relations
-  val nodesMaker = new NodesMaker()
+  val nodesMaker = new NodesMaker(Some(counter))
   // the relations maker for creating relations
   val relsMaker = new RelationsMaker()
 
@@ -43,7 +48,7 @@ class Neo4jLoader(dbDir: String)(implicit logger: Logger) {
       case stix: SRO => relsMaker.createRelations(stix)
       case stix: SDO => nodesMaker.createNodes(stix)
       case stix: StixObj => nodesMaker.createNodes(stix)
-      case _ => logger.error("cannot load STIX becuse not of SDO, SRO or StixObj type")
+      case _ => logger.error("cannot load the STIX-2 object because not of approved type")
     }
   }
 

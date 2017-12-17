@@ -4,6 +4,7 @@ import java.io.{File, InputStream}
 
 import com.kodekutters.stix.{Bundle, _}
 import com.typesafe.scalalogging.Logger
+import org.slf4j.helpers.NOPLogger
 import play.api.libs.json.Json
 
 import scala.collection.JavaConverters._
@@ -43,8 +44,9 @@ object Neo4jFileLoader {
   *
   * @author R. Wathelet June 2017, revised December 2017
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
+  * @param logger the implicit Logger, default to NOPLogger if absent
   */
-class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
+class Neo4jFileLoader(dbDir: String)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
 
   import Neo4jFileLoader._
 
@@ -52,16 +54,6 @@ class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
     * the STIX-2 Neo4j loader
     */
   val loader = new Neo4jLoader(dbDir)
-
-  /**
-    * logs the number of nodes that have been processed.
-    */
-  def logNodesCounter(): Unit = {
-    // print the number of SDO, SRO and StixObj (MarkingDefinition+LanguageContent)
-    loader.nodesMaker.counter.foreach({ case (k, v) => logger.info(k + ": " + v) })
-    // sum the SDO, SRO and StixObj
-    logger.info("total: " + loader.nodesMaker.counter.foldLeft(0)(_ + _._2))
-  }
 
   /**
     * read a bundle of Stix objects from the input json file,
@@ -81,7 +73,7 @@ class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
           case None => logger.error("ERROR reading bundle in file: " + inFile.getName)
           case Some(bundle) =>
             loader.loadIntoNeo4j(bundle)
-            logNodesCounter()
+            loader.counter.log()
         }
         loader.close()
     }
@@ -104,7 +96,7 @@ class Neo4jFileLoader(dbDir: String)(implicit logger: Logger) {
         case Some(bundle) =>
           logger.info("file: " + f.getName + " --> " + inFile)
           loader.loadIntoNeo4j(bundle)
-          logNodesCounter()
+          loader.counter.log()
         case None => logger.error("ERROR invalid bundle JSON in zip file: \n")
       }
     })

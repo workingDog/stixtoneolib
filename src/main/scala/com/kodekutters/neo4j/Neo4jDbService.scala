@@ -29,12 +29,13 @@ object Neo4jDbService {
     */
   def init(dbDir: String)(implicit logger: Logger): Unit = {
     // start a neo4j database server
-    // will create a new database or open the existing one
+    // will create a new database or open an existing one
     val factory = new GraphDatabaseFactory()
     Try(graphDB = factory.newEmbeddedDatabase(new File(dbDir))).toOption match {
       case None =>
         logger.error("cannot access " + dbDir + ", ensure no other process is using this database, and that the directory is writable")
-        System.exit(1)
+        throw new IllegalStateException("cannot access " + dbDir)
+
       case Some(gph) =>
         registerShutdownHook()
         logger.info("connected to Neo4j " + factory.getEdition + " at: " + dbDir)

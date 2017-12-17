@@ -1,6 +1,6 @@
 ## Stix-2.0 objects to Neo4J conversion
 
-The conversion of STIX-2 objects to Neo4j representations aim at 
+The conversion of STIX-2 objects to a Neo4j representation aims at 
 preserving all information present in the STIX-2 objects.
 
 ### Terminology used 
@@ -54,8 +54,8 @@ In addition the label "StixObj" is added to all StixObj nodes.
 SDO objects have a number of internal constituent data types, for example all have a list of
 common properties that include a possible external reference object. 
 A node plus an embedded relation are
-created for each of these constituent data types. A random ID string is generated
-for each of these and a relation is created from the parent
+created for each constituent data types. A random ID string is generated
+for each and a relation is created from the parent
 SDO to that data type node with the generated random ID. When an array of such data types is present
 an array of random ID strings is generated. 
 

@@ -5,20 +5,17 @@ import java.util.UUID
 import com.kodekutters.stix._
 import com.typesafe.scalalogging.Logger
 import org.neo4j.graphdb.Label.label
+import org.slf4j.helpers.NOPLogger
 
-import scala.collection.mutable
 
 /**
   * create Neo4j nodes and internal relations from a STIX-2 object
   *
   */
-class NodesMaker()(implicit logger: Logger) {
+class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
 
   import Neo4jDbService._
   import MakerSupport._
-
-  // counting the nodes by type
-  val counter = mutable.Map("SDO" -> 0, "SRO" -> 0, "StixObj" -> 0)
 
   /**
     * create nodes and embedded relations from a Stix object
@@ -27,9 +24,9 @@ class NodesMaker()(implicit logger: Logger) {
     */
   def createNodes(obj: StixObj) = {
     obj match {
-      case stix: SDO => createSDONode(stix); counter("SDO") = counter("SDO") + 1
-      case stix: SRO => createSRONode(stix); counter("SRO") = counter("SRO") + 1
-      case stix: StixObj => createStixObjNode(stix); counter("StixObj") = counter("StixObj") + 1
+      case stix: SDO => createSDONode(stix)
+      case stix: SRO => createSRONode(stix)
+      case stix: StixObj => createStixObjNode(stix)
       case _ => // do nothing for now
     }
   }
@@ -40,7 +37,7 @@ class NodesMaker()(implicit logger: Logger) {
     * @param x the SDO from which to create Neo4j nodes
     */
   def createSDONode(x: SDO) = {
-
+    counter.map(_.inc("SDO"))
     // common elements
     val granular_markings_ids = toIdArray(x.granular_markings)
     val external_references_ids = toIdArray(x.external_references)
@@ -219,6 +216,7 @@ class NodesMaker()(implicit logger: Logger) {
     * @param x the SRO from which to create Neo4j node
     */
   def createSRONode(x: SRO) = {
+    counter.map(_.inc("SRO"))
     transaction {
       val node = Neo4jDbService.graphDB.createNode(label("SRO"))
       node.addLabel(label(asCleanLabel(x.`type` + "_node")))
@@ -234,7 +232,7 @@ class NodesMaker()(implicit logger: Logger) {
     * @param stixObj the objects representing a MarkingDefinition or LanguageContent
     */
   def createStixObjNode(stixObj: StixObj) = {
-
+    counter.map(_.inc("StixObj"))
     stixObj match {
 
       case x: MarkingDefinition =>

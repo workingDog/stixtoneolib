@@ -21,16 +21,16 @@ STIX-2 bundles in JSON format and zip files.
     
 ### Installation and packaging
 
-**stixtoneolib** is a library for use in Scala applications to load STIX-2 objects 
+**stixtoneolib** is a library for use in Scala applications to convert and load STIX-2 objects 
 into a Neo4j graph database. To use the latest release add the following dependency to your *build.sbt*:
 
-    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.1"
+    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.2"
 
 To compile and package from source, type:
 
     sbt package
 
-This will produce "stixtoneolib-0.2.jar" in the "./target/scala-2.12" directory. 
+This will produce *stixtoneolib-0.3.jar* in the *./target/scala-2.12* directory. 
 See the *build.sbt* file for the required dependencies.
       
 To publish the library to your local (Ivy) repository, simply type:
@@ -39,13 +39,14 @@ To publish the library to your local (Ivy) repository, simply type:
 
 Then put this in your Scala application *build.sbt* file:
 
-    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.2" 
+    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.3" 
        
 ### Usage
 
 The main class for loading STIX-2 objects into a Neo4j database is **Neo4jLoader**.
 This class constructor requires a Neo4j database directory name, which is used to connect to an 
-existing database or create a new database.
+existing database or create a new database. In addition a **Logger** can be passed-in implicitly 
+to log the loading progress, defaults to no Logger if absent. 
 **Neo4jLoader** has two main methods: 
 
     loadIntoNeo4j(bundle)  to load a bundle of STIX-2 objects into a Neo4j database
@@ -60,11 +61,11 @@ In addition the **Neo4jFileLoader** helper class has four methods for processing
     loadBundleFile(infile)        to load a file containing a bundle of STIX-2 objects
     loadBundleZipFile(infile)     to load a zip file containing files each having a bundle of STIX-2 objects
     
-    loadLargeTextFile(infile)     to load one line at a time a file containing a bundle of STIX-2 objects
-    loadLargeZipTextFile(infile)  to load one line at a time a zip file containing files each having a bundle of STIX-2 objects
+    loadLargeTextFile(infile)     to load one line at a time a file containing a STIX-2 object on one line
+    loadLargeZipTextFile(infile)  to load one line at a time a zip file containing files each having a STIX-2 object on one line
 
-An example use of **"stixtoneolib"** is [StixToNeoDB](https://github.com/workingDog/StixToNeoDB) 
-which loads files of STIX-2 bundles into a Neo4j database.
+An example use of **stixtoneolib** is [StixToNeoDB](https://github.com/workingDog/StixToNeoDB) 
+which loads files of STIX-2 data into a Neo4j database.
 
 ### Dependencies and requirements
 
