@@ -14,9 +14,7 @@ import scala.language.postfixOps
 /**
   * embedded nodes and relations creation support
   */
-object MakerSupport {
-
-  import Neo4jDbService._
+class MakerSupport(neoService: Neo4jDbService) {
 
   // convenience implicit transformation from a string to a RelationshipType
   implicit def string2relationshipType(x: String): RelationshipType = RelationshipType.withName(x)
@@ -58,15 +56,15 @@ object MakerSupport {
       case s: TPLMarking => s.tlp.value
       case _ => ""
     }
-    val markObjNodeOpt = transaction {
-      val node = Neo4jDbService.graphDB.createNode(label("marking_object_refs"))
+    val markObjNodeOpt = neoService.transaction {
+      val node = neoService.graphDB.createNode(label("marking_object_refs"))
       node.setProperty("marking_id", definition_id)
       node.setProperty("marking", mark)
       node
     }
     markObjNodeOpt match {
       case Some(markObjNode) =>
-        transaction {
+        neoService.transaction {
           sourceNode.createRelationshipTo(markObjNode, "HAS_MARKING_OBJECT")
         }.getOrElse(logger.error("could not process marking_object_refs relation: " + definition_id))
 
@@ -83,8 +81,8 @@ object MakerSupport {
   def createKillPhases(sourceNode: Node, kill_chain_phasesOpt: Option[List[KillChainPhase]], ids: Array[String])(implicit logger: Logger) = {
     kill_chain_phasesOpt.foreach(kill_chain_phases => {
       for ((kp, i) <- kill_chain_phases.zipWithIndex) {
-        val stixNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(kp.`type`)))
+        val stixNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(asCleanLabel(kp.`type`)))
           node.setProperty("kill_chain_phase_id", ids(i))
           node.setProperty("kill_chain_name", kp.kill_chain_name)
           node.setProperty("phase_name", kp.phase_name)
@@ -92,7 +90,7 @@ object MakerSupport {
         }
         stixNodeOpt match {
           case Some(stixNode) =>
-            transaction {
+            neoService.transaction {
               sourceNode.createRelationshipTo(stixNode, "HAS_KILL_CHAIN_PHASE")
             }.getOrElse(logger.error("could not process relation: HAS_KILL_CHAIN_PHASE"))
 
@@ -109,8 +107,8 @@ object MakerSupport {
     * @param ids the ids representing the ExternalReferences
     */
   def createExternRefs(idString: String, external_referencesOpt: Option[List[ExternalReference]], ids: Array[String])(implicit logger: Logger): Unit = {
-    val sourceNodeOpt = transaction {
-      Neo4jDbService.idIndex.get("id", idString).getSingle
+    val sourceNodeOpt = neoService.transaction {
+      neoService.idIndex.get("id", idString).getSingle
     }
     sourceNodeOpt match {
       case Some(sourceNode) => createExternRefs(sourceNode, external_referencesOpt, ids)
@@ -128,8 +126,8 @@ object MakerSupport {
     external_referencesOpt.foreach(external_references => {
       for ((extRef, i) <- external_references.zipWithIndex) {
         val hashes_ids: Map[String, String] = (for (s <- extRef.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        val stixNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(extRef.`type`)))
+        val stixNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(asCleanLabel(extRef.`type`)))
           node.setProperty("external_reference_id", ids(i))
           node.setProperty("source_name", extRef.source_name)
           node.setProperty("description", extRef.description.getOrElse(""))
@@ -141,7 +139,7 @@ object MakerSupport {
         stixNodeOpt match {
           case Some(stixNode) =>
             createHashes(stixNode, extRef.hashes, hashes_ids)
-            transaction {
+            neoService.transaction {
               sourceNode.createRelationshipTo(stixNode, "HAS_EXTERNAL_REF")
             }.getOrElse(logger.error("could not process relation: HAS_EXTERNAL_REF"))
 
@@ -158,8 +156,8 @@ object MakerSupport {
     * @param ids the ids representing the GranularMarking
     */
   def createGranulars(idString: String, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String])(implicit logger: Logger): Unit = {
-    val sourceNodeOpt = transaction {
-      Neo4jDbService.idIndex.get("id", idString).getSingle
+    val sourceNodeOpt = neoService.transaction {
+      neoService.idIndex.get("id", idString).getSingle
     }
     sourceNodeOpt match {
       case Some(sourceNode) => createGranulars(sourceNode, granular_markingsOpt, ids)
@@ -176,8 +174,8 @@ object MakerSupport {
   def createGranulars(sourceNode: Node, granular_markingsOpt: Option[List[GranularMarking]], ids: Array[String])(implicit logger: Logger): Unit = {
     granular_markingsOpt.foreach(granular_markings => {
       for ((gra, i) <- granular_markings.zipWithIndex) {
-        val stixNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(gra.`type`)))
+        val stixNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(asCleanLabel(gra.`type`)))
           node.setProperty("granular_marking_id", ids(i))
           node.setProperty("selectors", gra.selectors.toArray)
           node.setProperty("marking_ref", gra.marking_ref.getOrElse(""))
@@ -186,7 +184,7 @@ object MakerSupport {
         }
         stixNodeOpt match {
           case Some(stixNode) =>
-            transaction {
+            neoService.transaction {
               sourceNode.createRelationshipTo(stixNode, "HAS_GRANULAR_MARKING")
             }.getOrElse(logger.error("could not process relation: HAS_GRANULAR_MARKING"))
 
@@ -204,9 +202,9 @@ object MakerSupport {
     */
   def createRelToObjRef(idString: String, object_refs: Option[List[Identifier]], relName: String)(implicit logger: Logger) = {
     for (s <- object_refs.getOrElse(List.empty)) {
-      transaction {
-        val sourceNode = Neo4jDbService.idIndex.get("id", idString).getSingle
-        val targetNode = Neo4jDbService.idIndex.get("id", s.toString()).getSingle
+      neoService.transaction {
+        val sourceNode = neoService.idIndex.get("id", idString).getSingle
+        val targetNode = neoService.idIndex.get("id", s.toString()).getSingle
         sourceNode.createRelationshipTo(targetNode, relName)
       }.getOrElse(logger.error("could not process " + relName + " relation from: " + idString + " to: " + s.toString()))
     }
@@ -219,9 +217,9 @@ object MakerSupport {
     */
   def createdByRel(sourceId: String, tgtOpt: Option[Identifier])(implicit logger: Logger) = {
     tgtOpt.map(tgt => {
-      transaction {
-        val sourceNode = Neo4jDbService.idIndex.get("id", sourceId).getSingle
-        val targetNode = Neo4jDbService.idIndex.get("id", tgt.toString()).getSingle
+      neoService.transaction {
+        val sourceNode = neoService.idIndex.get("id", sourceId).getSingle
+        val targetNode = neoService.idIndex.get("id", tgt.toString()).getSingle
         sourceNode.createRelationshipTo(targetNode, "CREATED_BY")
       }.getOrElse(logger.error("could not process CREATED_BY relation from: " + sourceId + " to: " + tgt.toString()))
     })
@@ -230,8 +228,8 @@ object MakerSupport {
   def createLangContents(sourceNode: Node, contents: Map[String, Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     for ((k, obs) <- contents) {
       val obs_contents_ids: Map[String, String] = (for (s <- obs.keySet) yield s -> UUID.randomUUID().toString).toMap
-      val tgtNodeOpt = transaction {
-        val node = Neo4jDbService.graphDB.createNode(label("contents"))
+      val tgtNodeOpt = neoService.transaction {
+        val node = neoService.graphDB.createNode(label("contents"))
         node.setProperty("contents_id", ids(k))
         node.setProperty(k, obs_contents_ids.values.toArray)
         node
@@ -239,7 +237,7 @@ object MakerSupport {
       tgtNodeOpt match {
         case Some(tgtNode) =>
           createTranslations(tgtNode, obs, obs_contents_ids)
-          transaction {
+          neoService.transaction {
             sourceNode.createRelationshipTo(tgtNode, "HAS_CONTENTS")
           }.getOrElse(logger.error("could not process language HAS_CONTENTS relation"))
 
@@ -250,15 +248,15 @@ object MakerSupport {
 
   private def createTranslations(sourceNode: Node, translations: Map[String, String], ids: Map[String, String])(implicit logger: Logger) = {
     for ((k, obs) <- translations) {
-      val tgtNodeOpt = transaction {
-        val node = Neo4jDbService.graphDB.createNode(label("translations"))
+      val tgtNodeOpt = neoService.transaction {
+        val node = neoService.graphDB.createNode(label("translations"))
         node.setProperty("translations_id", ids(k))
         node.setProperty(k, obs)
         node
       }
       tgtNodeOpt match {
         case Some(tgtNode) =>
-          transaction {
+          neoService.transaction {
             sourceNode.createRelationshipTo(tgtNode, "HAS_TRANSLATION")
           }.getOrElse(logger.error("could not process language HAS_TRANSLATION relation"))
 
@@ -271,15 +269,15 @@ object MakerSupport {
   def createHashes(theNode: Node, hashesOpt: Option[Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     hashesOpt.foreach(hashes =>
       for ((k, obs) <- hashes) {
-        val hashNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label("hashes"))
+        val hashNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label("hashes"))
           node.setProperty("hash_id", ids(k))
           node.setProperty(k, obs)
           node
         }
         hashNodeOpt match {
           case Some(hashNode) =>
-            transaction {
+            neoService.transaction {
               theNode.createRelationshipTo(hashNode, "HAS_HASHES")
             }.getOrElse(logger.error("could not process language HAS_HASHES relation"))
 

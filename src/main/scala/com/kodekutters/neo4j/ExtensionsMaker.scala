@@ -5,15 +5,17 @@ import java.util.UUID
 import com.kodekutters.stix._
 import com.typesafe.scalalogging.Logger
 import org.neo4j.graphdb.Label.label
-import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.{Node, RelationshipType}
 
 /**
   * create an Extension node and associated relations
   */
-object ExtensionsMaker {
+class ExtensionsMaker(neoService: Neo4jDbService) {
 
-  import Neo4jDbService._
-  import MakerSupport._
+  // convenience implicit transformation from a string to a RelationshipType
+  implicit def string2relationshipType(x: String): RelationshipType = RelationshipType.withName(x)
+
+  val support = new MakerSupport(neoService)
 
   /**
     * create the Extension nodes and embedded relations for the Observable object
@@ -27,8 +29,8 @@ object ExtensionsMaker {
       // for each extension
       for ((k, extention) <- extMap) {
         // create the Extension node
-        val xNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(extention.`type`)))
+        val xNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(support.asCleanLabel(extention.`type`)))
           node.addLabel(label("Extension"))
           node.setProperty("type", extention.`type`)
           node.setProperty("extension_id", ext_ids(k))
@@ -37,29 +39,29 @@ object ExtensionsMaker {
         xNodeOpt match {
           case Some(xNode) =>
             // create a relation between the parent Observable node and this Extension node
-            transaction {
+            neoService.transaction {
               sourceNode.createRelationshipTo(xNode, "HAS_EXTENSION")
             }.getOrElse {logger.error("could not process HAS_EXTENSION relation"); Unit}
 
             // add the specific attributes to the extension node
             extention match {
               case x: ArchiveFileExt =>
-                transaction {
+                neoService.transaction {
                   xNode.setProperty("contains_refs", x.contains_refs.getOrElse(List.empty).toArray)
                   xNode.setProperty("version", x.version.getOrElse(""))
                   xNode.setProperty("comment", x.comment.getOrElse(""))
                 }
 
               case x: NTFSFileExt =>
-                val altStream_ids = toIdArray(x.alternate_data_streams)
-                transaction {
+                val altStream_ids = support.toIdArray(x.alternate_data_streams)
+                neoService.transaction {
                   xNode.setProperty("sid", x.sid.getOrElse(""))
                   xNode.setProperty("alternate_data_streams", altStream_ids)
                 }
                 createAltDataStream(xNode, x.alternate_data_streams, altStream_ids)
 
               case x: PdfFileExt =>
-                transaction {
+                neoService.transaction {
                   xNode.setProperty("version", x.version.getOrElse(""))
                   xNode.setProperty("is_optimized", x.is_optimized.getOrElse(false))
                   xNode.setProperty("pdfid0", x.pdfid0.getOrElse(""))
@@ -68,7 +70,7 @@ object ExtensionsMaker {
 
               case x: RasterImgExt =>
                 val exitTags_ids: Map[String, String] = (for (s <- x.exif_tags.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-                transaction {
+                neoService.transaction {
                   xNode.setProperty("image_height", x.image_height.getOrElse(0))
                   xNode.setProperty("image_width", x.image_width.getOrElse(0))
                   xNode.setProperty("bits_per_pixel", x.bits_per_pixel.getOrElse(0))
@@ -78,7 +80,7 @@ object ExtensionsMaker {
                 createExifTags(xNode, x.exif_tags, exitTags_ids)
 
               case x: WindowPEBinExt =>
-                transaction {
+                neoService.transaction {
                   xNode.setProperty("pe_type", x.pe_type)
                   xNode.setProperty("imphash", x.imphash.getOrElse(""))
                   xNode.setProperty("machine_hex", x.machine_hex.getOrElse(""))
@@ -107,8 +109,8 @@ object ExtensionsMaker {
     altStreamOpt.foreach(altStream => {
       for ((kp, i) <- altStream.zipWithIndex) {
         val hashes_ids: Map[String, String] = (for (s <- kp.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        val tgtNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(kp.`type`)))
+        val tgtNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(support.asCleanLabel(kp.`type`)))
           node.setProperty("alternate_data_stream_id", ids(i))
           node.setProperty("name", kp.name)
           node.setProperty("size", kp.size.getOrElse(0))
@@ -116,8 +118,8 @@ object ExtensionsMaker {
           node
         }
         tgtNodeOpt.foreach(tgtNode => {
-          createHashes(tgtNode, kp.hashes, hashes_ids)
-          transaction {
+          support.createHashes(tgtNode, kp.hashes, hashes_ids)
+          neoService.transaction {
             fromNode.createRelationshipTo(tgtNode, "HAS_ALTERNATE_DATA_STREAM")
           }.getOrElse {logger.error("could not process HAS_ALTERNATE_DATA_STREAM relation"); Unit}
         })
@@ -133,14 +135,14 @@ object ExtensionsMaker {
           case Right(x) => x
           case Left(x) => x
         }
-        val tgtNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel("exif_tags")))
+        val tgtNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(support.asCleanLabel("exif_tags")))
           node.setProperty("exif_tags_id", ids(k))
           node.setProperty(k, theValue)
           node
         }
         tgtNodeOpt.foreach(tgtNode => {
-          transaction {
+          neoService.transaction {
             fromNode.createRelationshipTo(tgtNode, "HAS_EXIF_TAGS")
           }.getOrElse {logger.error("could not process HAS_EXIF_TAGS relation"); Unit}
         })

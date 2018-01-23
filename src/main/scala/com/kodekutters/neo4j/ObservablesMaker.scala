@@ -5,16 +5,19 @@ import java.util.UUID
 import com.kodekutters.stix._
 import com.typesafe.scalalogging.Logger
 import org.neo4j.graphdb.Label.label
-import org.neo4j.graphdb.Node
+import org.neo4j.graphdb.{Node, RelationshipType}
 
 /**
   * make the Observables nodes and relations for the ObservedData SDO
   */
-object ObservablesMaker {
+class ObservablesMaker(neoService: Neo4jDbService) {
 
-  import Neo4jDbService._
-  import MakerSupport._
+  // convenience implicit transformation from a string to a RelationshipType
+  implicit def string2relationshipType(x: String): RelationshipType = RelationshipType.withName(x)
 
+  val support = new MakerSupport(neoService)
+  val extensionsMaker = new ExtensionsMaker(neoService)
+  
   /**
     * create the Observables nodes and relations for the parent ObservedData SDO node
     *
@@ -28,23 +31,23 @@ object ObservablesMaker {
       // create the extensions ids
       val ext_ids: Map[String, String] = (for (s <- obs.extensions.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
       // create the observable node
-      val nodeOpt = transaction {
-        val theNode = Neo4jDbService.graphDB.createNode(label(asCleanLabel(obs.`type`)))
+      val nodeOpt = neoService.transaction {
+        val theNode = neoService.graphDB.createNode(label(support.asCleanLabel(obs.`type`)))
         theNode.addLabel(label("Observable"))
         theNode.setProperty("type", obs.`type`)
         theNode.setProperty("observable_id", obsIds(k))
         theNode.setProperty("extensions", ext_ids.values.toArray)
-        theNode.setProperty("custom", asJsonString(obs.custom))
+        theNode.setProperty("custom", support.asJsonString(obs.custom))
         theNode
       }
       nodeOpt match {
         case Some(node) =>
           // create the Extension nodes and relations to this observable
-          ExtensionsMaker.create(node, obs.extensions, ext_ids)
+          extensionsMaker.create(node, obs.extensions, ext_ids)
           // specify the observable attributes
           specify(node, obs)
           // create the relation to the parent node
-          transaction {
+          neoService.transaction {
             sourceNode.createRelationshipTo(node, "HAS_OBSERVABLE")
           }.getOrElse(logger.error("could not process HAS_OBSERVABLE relation"))
 
@@ -59,24 +62,24 @@ object ObservablesMaker {
       case x: Artifact =>
         // create the hashes ids
         val hashes_ids: Map[String, String] = (for (s <- x.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        transaction {
+        neoService.transaction {
           node.setProperty("mime_type", x.mime_type.getOrElse(""))
           node.setProperty("payload_bin", x.payload_bin.getOrElse(""))
           node.setProperty("url", x.url.getOrElse(""))
           node.setProperty("hashes", hashes_ids.values.toArray)
         }
         // create the hashes objects and embedded relations
-        createHashes(node, x.hashes, hashes_ids)
+        support.createHashes(node, x.hashes, hashes_ids)
 
       case x: AutonomousSystem =>
-        transaction {
+        neoService.transaction {
           node.setProperty("number", x.number)
           node.setProperty("name", x.name.getOrElse(""))
           node.setProperty("rir", x.rir.getOrElse(""))
         }
 
       case x: Directory =>
-        transaction {
+        neoService.transaction {
           node.setProperty("path", x.path)
           node.setProperty("path_enc", x.path_enc.getOrElse(""))
           node.setProperty("created", x.created.getOrElse("").toString)
@@ -86,20 +89,20 @@ object ObservablesMaker {
         }
 
       case x: DomainName =>
-        transaction {
+        neoService.transaction {
           node.setProperty("value", x.value)
           node.setProperty("resolves_to_refs", x.resolves_to_refs.getOrElse(List.empty).toArray)
         }
 
       case x: EmailAddress =>
-        transaction {
+        neoService.transaction {
           node.setProperty("display_name", x.display_name.getOrElse(""))
           node.setProperty("belongs_to_ref", x.belongs_to_ref.getOrElse(""))
         }
 
       case x: EmailMessage =>
         val headers_ids: Map[String, String] = (for (s <- x.additional_header_fields.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        transaction {
+        neoService.transaction {
           node.setProperty("is_multipart", x.is_multipart)
           // todo body_multipart: Option[List[EmailMimeType]]
           node.setProperty("body", x.body.getOrElse(""))
@@ -119,7 +122,7 @@ object ObservablesMaker {
 
       case x: File =>
         val hashes_ids: Map[String, String] = (for (s <- x.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        transaction {
+        neoService.transaction {
           node.setProperty("size", x.size.getOrElse(0))
           node.setProperty("name", x.name.getOrElse(""))
           node.setProperty("name_enc", x.name_enc.getOrElse(""))
@@ -136,35 +139,35 @@ object ObservablesMaker {
           node.setProperty("content_ref", x.content_ref.getOrElse(""))
           node.setProperty("hashes", hashes_ids.values.toArray)
         }
-        createHashes(node, x.hashes, hashes_ids)
+        support.createHashes(node, x.hashes, hashes_ids)
 
       case x: IPv4Address =>
-        transaction {
+        neoService.transaction {
           node.setProperty("value", x.value)
           node.setProperty("resolves_to_refs", x.resolves_to_refs.getOrElse(List.empty).toArray)
           node.setProperty("belongs_to_refs", x.belongs_to_refs.getOrElse(List.empty).toArray)
         }
 
       case x: IPv6Address =>
-        transaction {
+        neoService.transaction {
           node.setProperty("value", x.value)
           node.setProperty("resolves_to_refs", x.resolves_to_refs.getOrElse(List.empty).toArray)
           node.setProperty("belongs_to_refs", x.belongs_to_refs.getOrElse(List.empty).toArray)
         }
 
       case x: MACAddress =>
-        transaction {
+        neoService.transaction {
           node.setProperty("value", x.value)
         }
 
       case x: Mutex =>
-        transaction {
+        neoService.transaction {
           node.setProperty("name", x.name)
         }
 
       case x: NetworkTraffic =>
         val ipfix_ids: Map[String, String] = (for (s <- x.ipfix.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        transaction {
+        neoService.transaction {
           node.setProperty("start", x.start.getOrElse("").toString)
           node.setProperty("end", x.end.getOrElse("").toString)
           node.setProperty("is_active", x.is_active.getOrElse(false))
@@ -187,7 +190,7 @@ object ObservablesMaker {
 
       case x: Process =>
         val env_ids: Map[String, String] = (for (s <- x.environment_variables.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        transaction {
+        neoService.transaction {
           node.setProperty("is_hidden", x.is_hidden.getOrElse(false).toString)
           node.setProperty("pid", x.pid.getOrElse(0)) // todo <-- not correct
           node.setProperty("name", x.name.getOrElse(""))
@@ -205,7 +208,7 @@ object ObservablesMaker {
         createEnv(node, x.environment_variables, env_ids)
 
       case x: Software =>
-        transaction {
+        neoService.transaction {
           node.setProperty("name", x.name)
           node.setProperty("cpe", x.cpe.getOrElse(""))
           node.setProperty("languages", x.languages.getOrElse(List.empty).toArray)
@@ -214,12 +217,12 @@ object ObservablesMaker {
         }
 
       case x: URL =>
-        transaction {
+        neoService.transaction {
           node.setProperty("value", x.value)
         }
 
       case x: UserAccount =>
-        transaction {
+        neoService.transaction {
           node.setProperty("user_id", x.user_id)
           node.setProperty("account_login", x.account_login.getOrElse(""))
           node.setProperty("account_type", x.account_type.getOrElse(""))
@@ -236,7 +239,7 @@ object ObservablesMaker {
         }
 
       case x: WindowsRegistryKey =>
-        transaction {
+        neoService.transaction {
           node.setProperty("key", x.key)
           // todo values Option[List[WindowsRegistryValueType]]
           node.setProperty("modified", x.modified.getOrElse("").toString)
@@ -246,7 +249,7 @@ object ObservablesMaker {
 
       case x: X509Certificate =>
         val hashes_ids: Map[String, String] = (for (s <- x.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
-        transaction {
+        neoService.transaction {
           node.setProperty("is_self_signed", x.is_self_signed.getOrElse(false))
           node.setProperty("version", x.version.getOrElse(""))
           node.setProperty("serial_number", x.serial_number.getOrElse(""))
@@ -261,7 +264,7 @@ object ObservablesMaker {
           node.setProperty("hashes", hashes_ids.values.toArray)
           // todo x509_v3_extensions: Option[X509V3ExtenstionsType]
         }
-        createHashes(node, x.hashes, hashes_ids)
+        support.createHashes(node, x.hashes, hashes_ids)
 
       case _ =>
     }
@@ -270,14 +273,14 @@ object ObservablesMaker {
   private def createEnv(sourceNode: Node, envOpt: Option[Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     envOpt.foreach(env =>
       for ((k, obs) <- env) {
-        val nodeOpt = transaction {
-          val theNode = Neo4jDbService.graphDB.createNode(label("environment_variables"))
+        val nodeOpt = neoService.transaction {
+          val theNode = neoService.graphDB.createNode(label("environment_variables"))
           theNode.setProperty("environment_variables_id", ids(k))
           theNode.setProperty(k, obs)
           theNode
         }
         nodeOpt.foreach(node => {
-          transaction {
+          neoService.transaction {
             sourceNode.createRelationshipTo(node, "HAS_ENVIRONMENT_VARIABLE")
           }.getOrElse(logger.error("could not process HAS_ENVIRONMENT_VARIABLE relation"))
         })
@@ -288,14 +291,14 @@ object ObservablesMaker {
   private def createHeaders(sourceNode: Node, headersOpt: Option[Map[String, String]], ids: Map[String, String])(implicit logger: Logger) = {
     headersOpt.foreach(headers =>
       for ((k, obs) <- headers) {
-        val nodeOpt = transaction {
-          val theNode = Neo4jDbService.graphDB.createNode(label("additional_header_fields"))
+        val nodeOpt = neoService.transaction {
+          val theNode = neoService.graphDB.createNode(label("additional_header_fields"))
           theNode.setProperty("additional_header_fields_id", ids(k))
           theNode.setProperty(k, obs)
           theNode
         }
         nodeOpt.foreach(node => {
-          transaction {
+          neoService.transaction {
             sourceNode.createRelationshipTo(node, "HAS_ADDITIONAL_HEADER_FIELD")
           }.getOrElse(logger.error("could not process HAS_ADDITIONAL_HEADER_FIELD relation"))
         })
@@ -311,14 +314,14 @@ object ObservablesMaker {
           case Right(x) => x
           case Left(x) => x
         }
-        val nodeOpt = transaction {
-          val theNode = Neo4jDbService.graphDB.createNode(label(asCleanLabel("ipfix")))
+        val nodeOpt = neoService.transaction {
+          val theNode = neoService.graphDB.createNode(label(support.asCleanLabel("ipfix")))
           theNode.setProperty("ipfix_id", ids(k))
           theNode.setProperty(k, theValue)
           theNode
         }
         nodeOpt.foreach(node => {
-          transaction {
+          neoService.transaction {
             sourceNode.createRelationshipTo(node, "HAS_IPFIX")
           }.getOrElse(logger.error("could not process HAS_IPFIX relation"))
         })

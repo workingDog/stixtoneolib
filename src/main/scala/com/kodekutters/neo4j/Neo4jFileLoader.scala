@@ -46,14 +46,14 @@ object Neo4jFileLoader {
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
   * @param logger the implicit Logger, default to NOPLogger if absent
   */
-class Neo4jFileLoader(dbDir: String)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
+class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
 
   import Neo4jFileLoader._
 
   /**
     * the STIX-2 Neo4j loader
     */
-  val loader = new Neo4jLoader(dbDir)
+  val loader = new Neo4jLoader(dbDir, hostAddress)
 
   /**
     * read a bundle of Stix objects from the input json file,

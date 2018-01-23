@@ -13,18 +13,20 @@ import scala.language.{implicitConversions, postfixOps}
   * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
   * @param logger the implicit Logger, default to NOPLogger if absent
   */
-class Neo4jLoader(dbDir: String)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
+class Neo4jLoader(val dbDir: String, hostAddress: String = "localhost:7687")(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
 
   // a counter of SDO, SRO and StixObj
   val counter = Counter()
 
-  // initialize the neo4j db services
-  Neo4jDbService.init(dbDir)
+  // create the neo4j db services
+  val neoService = new Neo4jDbService(dbDir, hostAddress)
+  // must initialize the neo4j db services
+  neoService.init()
 
   // the nodes maker for creating nodes and their embedded relations
-  val nodesMaker = new NodesMaker(Some(counter))
+  val nodesMaker = new NodesMaker(Some(counter), neoService)
   // the relations maker for creating relations
-  val relsMaker = new RelationsMaker()
+  val relsMaker = new RelationsMaker(neoService)
 
   /**
     * load a bundle of Stix objects to a Neo4j database
@@ -56,7 +58,7 @@ class Neo4jLoader(dbDir: String)(implicit logger: Logger = Logger(NOPLogger.NOP_
     * close the Neo4j database service
     */
   def close(): Unit = {
-    Neo4jDbService.closeAll()
+    neoService.closeAll()
   }
 
 }

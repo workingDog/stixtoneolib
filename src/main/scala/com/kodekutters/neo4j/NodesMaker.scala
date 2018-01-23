@@ -12,10 +12,10 @@ import org.slf4j.helpers.NOPLogger
   * create Neo4j nodes and internal relations from a STIX-2 object
   *
   */
-class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
+class NodesMaker(counter: Option[Counter] = None, neoService: Neo4jDbService)(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
 
-  import Neo4jDbService._
-  import MakerSupport._
+  val support = new MakerSupport(neoService)
+  val observablesMaker = new ObservablesMaker(neoService)
 
   /**
     * create nodes and embedded relations from a Stix object
@@ -39,12 +39,12 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
   def createSDONode(x: SDO) = {
     counter.map(_.inc("SDO"))
     // common elements
-    val granular_markings_ids = toIdArray(x.granular_markings)
-    val external_references_ids = toIdArray(x.external_references)
+    val granular_markings_ids = support.toIdArray(x.granular_markings)
+    val external_references_ids = support.toIdArray(x.external_references)
     // create a base node and internal relations common to all SDO
     // this includes making a node for a CustomStix object
-    val sdoNodeOpt = transaction {
-      val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(x.`type`)))
+    val sdoNodeOpt = neoService.transaction {
+      val node = neoService.graphDB.createNode(label(support.asCleanLabel(x.`type`)))
       node.addLabel(label("SDO"))
       node.setProperty("id", x.id.toString())
       node.setProperty("type", x.`type`)
@@ -55,36 +55,36 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
       //  node.setProperty("confidence", x.confidence.getOrElse(0))
       node.setProperty("external_references", external_references_ids)
       //  node.setProperty("lang", x.lang.getOrElse(""))
-      node.setProperty("object_marking_refs", toIdStringArray(x.object_marking_refs))
+      node.setProperty("object_marking_refs", support.toIdStringArray(x.object_marking_refs))
       node.setProperty("granular_markings", granular_markings_ids)
       node.setProperty("created_by_ref", x.created_by_ref.getOrElse("").toString)
-      node.setProperty("custom", asJsonString(x.custom))
-      Neo4jDbService.idIndex.add(node, "id", node.getProperty("id"))
+      node.setProperty("custom", support.asJsonString(x.custom))
+      neoService.idIndex.add(node, "id", node.getProperty("id"))
       node
     }
     // catch any errors
     sdoNodeOpt match {
       case Some(sdoNode) =>
         // create the external_references nodes and relations
-        createExternRefs(sdoNode, x.external_references, external_references_ids)
+        support.createExternRefs(sdoNode, x.external_references, external_references_ids)
         // create the granular_markings nodes and relations
-        createGranulars(sdoNode, x.granular_markings, granular_markings_ids)
+        support.createGranulars(sdoNode, x.granular_markings, granular_markings_ids)
         // for the specific SDO type
         x.`type` match {
 
           case AttackPattern.`type` =>
             val y = x.asInstanceOf[AttackPattern]
-            val kill_chain_phases_ids = toIdArray(y.kill_chain_phases)
-            transaction {
+            val kill_chain_phases_ids = support.toIdArray(y.kill_chain_phases)
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
               sdoNode.setProperty("kill_chain_phases", kill_chain_phases_ids)
             }.getOrElse(logger.error("could not process AttackPattern node: " + x.id.toString()))
-            createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
+            support.createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
 
           case Identity.`type` =>
             val y = x.asInstanceOf[Identity]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("identity_class", y.identity_class)
               sdoNode.setProperty("sectors", y.sectors.getOrElse(List.empty).toArray)
@@ -94,7 +94,7 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
 
           case Campaign.`type` =>
             val y = x.asInstanceOf[Campaign]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("objective", y.objective.getOrElse(""))
               sdoNode.setProperty("aliases", y.aliases.getOrElse(List.empty).toArray)
@@ -105,14 +105,14 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
 
           case CourseOfAction.`type` =>
             val y = x.asInstanceOf[CourseOfAction]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
             }.getOrElse(logger.error("could not process CourseOfAction node: " + x.id.toString()))
 
           case IntrusionSet.`type` =>
             val y = x.asInstanceOf[IntrusionSet]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
               sdoNode.setProperty("aliases", y.aliases.getOrElse(List.empty).toArray)
@@ -126,26 +126,26 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
 
           case Malware.`type` =>
             val y = x.asInstanceOf[Malware]
-            val kill_chain_phases_ids = toIdArray(y.kill_chain_phases)
-            transaction {
+            val kill_chain_phases_ids = support.toIdArray(y.kill_chain_phases)
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
               sdoNode.setProperty("kill_chain_phases", kill_chain_phases_ids)
             }.getOrElse(logger.error("could not process Malware node: " + x.id.toString()))
-            createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
+            support.createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
 
           case Report.`type` =>
             val y = x.asInstanceOf[Report]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("published", y.published.time)
-              sdoNode.setProperty("object_refs_ids", toIdStringArray(Option(y.object_refs)))
+              sdoNode.setProperty("object_refs_ids", support.toIdStringArray(Option(y.object_refs)))
               sdoNode.setProperty("description", y.description.getOrElse(""))
             }.getOrElse(logger.error("could not process Report node: " + x.id.toString()))
 
           case ThreatActor.`type` =>
             val y = x.asInstanceOf[ThreatActor]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
               sdoNode.setProperty("aliases", y.aliases.getOrElse(List.empty).toArray)
@@ -160,26 +160,26 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
 
           case Tool.`type` =>
             val y = x.asInstanceOf[Tool]
-            val kill_chain_phases_ids = toIdArray(y.kill_chain_phases)
-            transaction {
+            val kill_chain_phases_ids = support.toIdArray(y.kill_chain_phases)
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
               sdoNode.setProperty("kill_chain_phases", kill_chain_phases_ids)
               sdoNode.setProperty("tool_version", y.tool_version.getOrElse(""))
             }.getOrElse(logger.error("could not process Tool node: " + x.id.toString()))
-            createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
+            support.createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
 
           case Vulnerability.`type` =>
             val y = x.asInstanceOf[Vulnerability]
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("name", y.name)
               sdoNode.setProperty("description", y.description.getOrElse(""))
             }.getOrElse(logger.error("could not process Vulnerability node: " + x.id.toString()))
 
           case Indicator.`type` =>
             val y = x.asInstanceOf[Indicator]
-            val kill_chain_phases_ids = toIdArray(y.kill_chain_phases)
-            transaction {
+            val kill_chain_phases_ids = support.toIdArray(y.kill_chain_phases)
+            neoService.transaction {
               sdoNode.setProperty("name", y.name.getOrElse(""))
               sdoNode.setProperty("description", y.description.getOrElse(""))
               sdoNode.setProperty("pattern", y.pattern)
@@ -187,12 +187,12 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
               sdoNode.setProperty("valid_until", y.valid_until.getOrElse("").toString)
               sdoNode.setProperty("kill_chain_phases", kill_chain_phases_ids)
             }.getOrElse(logger.error("could not process Indicator node: " + x.id.toString()))
-            createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
+            support.createKillPhases(sdoNode, y.kill_chain_phases, kill_chain_phases_ids)
 
           case ObservedData.`type` =>
             val y = x.asInstanceOf[ObservedData]
             val obs_ids: Map[String, String] = for (s <- y.objects) yield s._1 -> UUID.randomUUID().toString
-            transaction {
+            neoService.transaction {
               sdoNode.setProperty("first_observed", y.first_observed.toString())
               sdoNode.setProperty("last_observed", y.last_observed.toString())
               sdoNode.setProperty("number_observed", y.number_observed)
@@ -200,7 +200,7 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
               sdoNode.setProperty("description", y.description.getOrElse(""))
             }.getOrElse(logger.error("could not process ObservedData node: " + x.id.toString()))
             // create the Observable objects nodes and relations for this ObservedData object
-            ObservablesMaker.create(sdoNode, y.objects, obs_ids)
+            observablesMaker.create(sdoNode, y.objects, obs_ids)
 
           case _ => // do nothing here
 
@@ -217,12 +217,12 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
     */
   def createSRONode(x: SRO) = {
     counter.map(_.inc("SRO"))
-    transaction {
-      val node = Neo4jDbService.graphDB.createNode(label("SRO"))
-      node.addLabel(label(asCleanLabel(x.`type` + "_node")))
+    neoService.transaction {
+      val node = neoService.graphDB.createNode(label("SRO"))
+      node.addLabel(label(support.asCleanLabel(x.`type` + "_node")))
       node.setProperty("id", x.id.toString())
       node.setProperty("type", x.`type`) // todo should this be here
-      Neo4jDbService.idIndex.add(node, "id", node.getProperty("id"))
+      neoService.idIndex.add(node, "id", node.getProperty("id"))
     }.getOrElse(logger.error("could not process SRO node: " + x.id.toString()))
   }
 
@@ -237,10 +237,10 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
 
       case x: MarkingDefinition =>
         val definition_id = UUID.randomUUID().toString
-        val granular_markings_ids = toIdArray(x.granular_markings)
-        val external_references_ids = toIdArray(x.external_references)
-        val stixNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(x.`type`)))
+        val granular_markings_ids = support.toIdArray(x.granular_markings)
+        val external_references_ids = support.toIdArray(x.external_references)
+        val stixNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(support.asCleanLabel(x.`type`)))
           node.addLabel(label("StixObj"))
           node.setProperty("id", x.id.toString())
           node.setProperty("type", x.`type`)
@@ -248,32 +248,32 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
           node.setProperty("definition_type", x.definition_type)
           node.setProperty("definition_id", definition_id)
           node.setProperty("external_references", external_references_ids)
-          node.setProperty("object_marking_refs", toIdStringArray(x.object_marking_refs))
+          node.setProperty("object_marking_refs", support.toIdStringArray(x.object_marking_refs))
           node.setProperty("granular_markings", granular_markings_ids)
           node.setProperty("created_by_ref", x.created_by_ref.getOrElse("").toString)
-          node.setProperty("custom", asJsonString(x.custom))
-          Neo4jDbService.idIndex.add(node, "id", node.getProperty("id"))
+          node.setProperty("custom", support.asJsonString(x.custom))
+          neoService.idIndex.add(node, "id", node.getProperty("id"))
           node
         }
         // catch errors
         stixNodeOpt match {
           case Some(stixNode) =>
             // the external_references
-            createExternRefs(stixNode, x.external_references, external_references_ids)
+            support.createExternRefs(stixNode, x.external_references, external_references_ids)
             // the granular_markings
-            createGranulars(stixNode, x.granular_markings, granular_markings_ids)
+            support.createGranulars(stixNode, x.granular_markings, granular_markings_ids)
             // the marking object definition
-            createMarkingDef(stixNode, x.definition, definition_id)
+            support.createMarkingDef(stixNode, x.definition, definition_id)
 
           case None => logger.error("could not process MarkingDefinition node: " + x.id.toString())
         }
 
       case x: LanguageContent =>
-        val granular_markings_ids = toIdArray(x.granular_markings)
-        val external_references_ids = toIdArray(x.external_references)
+        val granular_markings_ids = support.toIdArray(x.granular_markings)
+        val external_references_ids = support.toIdArray(x.external_references)
         val lang_contents_ids: Map[String, String] = (for (s <- x.contents.keySet) yield s -> UUID.randomUUID().toString).toMap
-        val stixNodeOpt = transaction {
-          val node = Neo4jDbService.graphDB.createNode(label(asCleanLabel(x.`type`)))
+        val stixNodeOpt = neoService.transaction {
+          val node = neoService.graphDB.createNode(label(support.asCleanLabel(x.`type`)))
           node.addLabel(label("StixObj"))
           node.setProperty("id", x.id.toString())
           node.setProperty("type", x.`type`)
@@ -284,23 +284,23 @@ class NodesMaker(counter: Option[Counter] = None)(implicit logger: Logger = Logg
           node.setProperty("labels", x.labels.getOrElse(List.empty).toArray)
           node.setProperty("revoked", x.revoked.getOrElse(false))
           node.setProperty("external_references", external_references_ids)
-          node.setProperty("object_marking_refs", toIdStringArray(x.object_marking_refs))
+          node.setProperty("object_marking_refs", support.toIdStringArray(x.object_marking_refs))
           node.setProperty("granular_markings", granular_markings_ids)
           node.setProperty("created_by_ref", x.created_by_ref.getOrElse("").toString)
           node.setProperty("contents", lang_contents_ids.values.toArray)
-          node.setProperty("custom", asJsonString(x.custom))
-          Neo4jDbService.idIndex.add(node, "id", node.getProperty("id"))
+          node.setProperty("custom", support.asJsonString(x.custom))
+          neoService.idIndex.add(node, "id", node.getProperty("id"))
           node
         }
         // catch errors
         stixNodeOpt match {
           case Some(stixNode) =>
             // the external_references
-            createExternRefs(stixNode, x.external_references, external_references_ids)
+            support.createExternRefs(stixNode, x.external_references, external_references_ids)
             // the granular_markings
-            createGranulars(stixNode, x.granular_markings, granular_markings_ids)
+            support.createGranulars(stixNode, x.granular_markings, granular_markings_ids)
             // the language contents
-            createLangContents(stixNode, x.contents, lang_contents_ids)
+            support.createLangContents(stixNode, x.contents, lang_contents_ids)
 
           case None => logger.error("could not process LanguageContent node: " + x.id.toString())
         }
