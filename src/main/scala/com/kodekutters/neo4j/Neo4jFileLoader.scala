@@ -43,7 +43,7 @@ object Neo4jFileLoader {
   * loads files of Stix-2.0 objects, SDO, SRO and associated data types into a Neo4j graph database
   *
   * @author R. Wathelet June 2017, revised December 2017
-  * @param dbDir the neo4j graph database directory name of an existing database or where a new one will be created
+  * @param dbDir  the neo4j graph database directory name of an existing database or where a new one will be created
   * @param logger the implicit Logger, default to NOPLogger if absent
   */
 class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(implicit logger: Logger = Logger(NOPLogger.NOP_LOGGER)) {
@@ -92,12 +92,14 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
     val rootZip = new java.util.zip.ZipFile(inFile)
     // for each entry file containing a single bundle
     rootZip.entries.asScala.foreach(f => {
-      readBundle(rootZip.getInputStream(f)) match {
-        case Some(bundle) =>
-          logger.info("file: " + f.getName + " --> " + inFile)
-          loader.loadIntoNeo4j(bundle)
-          loader.counter.log()
-        case None => logger.error("ERROR invalid bundle JSON in zip file: \n")
+      if (f.getName.toLowerCase.endsWith(".json") || f.getName.toLowerCase.endsWith(".stix")) {
+        readBundle(rootZip.getInputStream(f)) match {
+          case Some(bundle) =>
+            logger.info("file: " + f.getName + " --> " + inFile)
+            loader.loadIntoNeo4j(bundle)
+            loader.counter.log()
+          case None => logger.error("ERROR invalid bundle JSON in zip file: \n")
+        }
       }
     })
     loader.close()
@@ -154,29 +156,30 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
     val rootZip = new java.util.zip.ZipFile(inFile)
     // for each entry file
     rootZip.entries.asScala.foreach(f => {
-      // go thru the file twice, on first pass process the nodes, on second pass relations
-      for (pass <- 1 to 2) {
-        // get the lines from the entry file
-        val inputLines = Source.fromInputStream(rootZip.getInputStream(f)).getLines
-        // read a Stix object from the inputLines, one line at a time
-        for (line <- inputLines) {
-          Option(Json.parse(line)) match {
-            case None => logger.error("could not parse JSON in file: " + inFile + " line: " + line)
-            case Some(js) =>
-              // create a Stix object from it
-              Json.fromJson[StixObj](js).asOpt match {
-                case None => logger.error("ERROR reading StixObj in file: " + inFile + " line: " + line)
-                case Some(stixObj) =>
-                  if (pass == 1)
-                    loader.nodesMaker.createNodes(stixObj)
-                  else
-                    loader.relsMaker.createRelations(stixObj)
-              }
+      if (f.getName.toLowerCase.endsWith(".json") || f.getName.toLowerCase.endsWith(".stix")) {
+        // go thru the file twice, on first pass process the nodes, on second pass relations
+        for (pass <- 1 to 2) {
+          // get the lines from the entry file
+          val inputLines = Source.fromInputStream(rootZip.getInputStream(f)).getLines
+          // read a Stix object from the inputLines, one line at a time
+          for (line <- inputLines) {
+            Option(Json.parse(line)) match {
+              case None => logger.error("could not parse JSON in file: " + inFile + " line: " + line)
+              case Some(js) =>
+                // create a Stix object from it
+                Json.fromJson[StixObj](js).asOpt match {
+                  case None => logger.error("ERROR reading StixObj in file: " + inFile + " line: " + line)
+                  case Some(stixObj) =>
+                    if (pass == 1)
+                      loader.nodesMaker.createNodes(stixObj)
+                    else
+                      loader.relsMaker.createRelations(stixObj)
+                }
+            }
           }
         }
       }
-    }
-    )
+    })
     loader.close()
   }
 

@@ -3,6 +3,8 @@ Change Log
 
 ### changes in 0.4
 
+* in Neo4jFileLoader restrict processing zip files that contain only .json and .stix entry files.
+* updated to neo4j-3.3.2
 
 
 ### changes in 0.3
