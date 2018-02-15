@@ -4,7 +4,7 @@ import java.io.File
 
 import com.typesafe.scalalogging.Logger
 import org.neo4j.graphdb.{GraphDatabaseService, Node}
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
+import org.neo4j.graphdb.factory.{GraphDatabaseFactory, GraphDatabaseSettings}
 import org.neo4j.graphdb.index.Index
 import org.neo4j.kernel.configuration.BoltConnector
 
@@ -38,6 +38,7 @@ class Neo4jDbService(dbDir: String, hostAddress: String = "localhost:7687")(impl
         .setConfig(bolt.`type`, "BOLT")
         .setConfig(bolt.enabled, "true")
         .setConfig(bolt.listen_address, hostAddress)
+        .setConfig(GraphDatabaseSettings.allow_upgrade, "true")
         .newGraphDatabase()
     ).toOption match {
       case None =>

@@ -1,5 +1,6 @@
 package com.kodekutters.neo4j
 
+import com.kodekutters.stix.{SDO, SRO, StixObj}
 import com.typesafe.scalalogging.Logger
 
 import scala.collection.mutable
@@ -24,10 +25,12 @@ case class Counter()(implicit logger: Logger) {
     * log the counter information
     */
   def log(): Unit = {
-    // print the number of SDO, SRO and StixObj (MarkingDefinition+LanguageContent)
-    count.foreach({ case (k, v) => logger.info(k + ": " + v) })
-    // sum the SDO, SRO and StixObj
-    logger.info("total: " + count.foldLeft(0)(_ + _._2))
+    if(logger != null) {
+      // print the number of SDO, SRO and StixObj (MarkingDefinition+LanguageContent)
+      count.foreach({ case (k, v) => logger.info(k + ": " + v) })
+      // sum the SDO, SRO and StixObj
+      logger.info("total: " + count.foldLeft(0)(_ + _._2))
+    }
   }
 
   /**
@@ -35,4 +38,11 @@ case class Counter()(implicit logger: Logger) {
     */
   def inc(k: String): Unit = count(k) = count(k) + 1
 
+  def countStix(stix: StixObj): Unit = {
+    stix match {
+      case x: SDO => inc("SDO")
+      case x: SRO => inc("SRO")
+      case x: StixObj => inc("StixObj")
+    }
+  }
 }

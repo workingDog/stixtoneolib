@@ -4,8 +4,9 @@ Change Log
 ### changes in 0.4
 
 * in Neo4jFileLoader restrict processing zip files that contain only .json and .stix entry files.
-* updated to neo4j-3.3.2
-
+* updated to neo4j-3.3.3
+* updated sbt to ver: 1.1.0
+* made Counter a separate class
 
 ### changes in 0.3
 
