@@ -5,7 +5,7 @@ name := "stixtoneolib"
 
 version := (version in ThisBuild).value
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.6"
 
 libraryDependencies ++= Seq(
   "org.neo4j" % "neo4j" % "3.3.3",
