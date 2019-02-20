@@ -91,6 +91,3 @@ Java 8 is required and Neo4j Community Edition should be installed to process th
 ### Status
 
 work in progress.
-
-
-

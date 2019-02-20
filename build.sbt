@@ -31,5 +31,4 @@ licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 assemblyJarName in assembly := "stixtoneolib-" + version.value + ".jar"
 
-
 scalacOptions := Seq("-unchecked", "-deprecation")
