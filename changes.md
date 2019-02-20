@@ -1,12 +1,18 @@
 Change Log
 ==========
 
+### changes in 0.5-SNAPSHOT
+
+
 ### changes in 0.4
 
 * in Neo4jFileLoader restrict processing zip files that contain only .json and .stix entry files.
-* updated to neo4j-3.3.3
-* updated sbt to ver: 1.1.5
+* updated scalastix to ver: 0.9
+* modified createAltDataStream
+* changed Int to Long where appropriate
+* updated sbt to ver: 1.2.8
 * made Counter a separate class
+* removed dependency, "ch.qos.logback" % "logback-classic" % "1.3.0-alpha4"
 
 ### changes in 0.3
 

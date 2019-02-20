@@ -306,7 +306,7 @@ class ObservablesMaker(neoService: Neo4jDbService) {
     )
   }
 
-  private def createIpfix(sourceNode: Node, ipfixOpt: Option[Map[String, Either[Int, String]]], ids: Map[String, String])(implicit logger: Logger) = {
+  private def createIpfix(sourceNode: Node, ipfixOpt: Option[Map[String, Either[Long, String]]], ids: Map[String, String])(implicit logger: Logger) = {
     ipfixOpt.foreach(ipfix =>
       for ((k, obs) <- ipfix) {
         // either a int or string

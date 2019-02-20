@@ -110,7 +110,7 @@ class ExtensionsMaker(neoService: Neo4jDbService) {
       for ((kp, i) <- altStream.zipWithIndex) {
         val hashes_ids: Map[String, String] = (for (s <- kp.hashes.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
         val tgtNodeOpt = neoService.transaction {
-          val node = neoService.graphDB.createNode(label(support.asCleanLabel(kp.`type`)))
+          val node = neoService.graphDB.createNode(label(kp.name))
           node.setProperty("alternate_data_stream_id", ids(i))
           node.setProperty("name", kp.name)
           node.setProperty("size", kp.size.getOrElse(0))
@@ -127,7 +127,7 @@ class ExtensionsMaker(neoService: Neo4jDbService) {
     })
   }
 
-  private def createExifTags(fromNode: Node, exitTagsOpt: Option[Map[String, Either[Int, String]]], ids: Map[String, String])(implicit logger: Logger) = {
+  private def createExifTags(fromNode: Node, exitTagsOpt: Option[Map[String, Either[Long, String]]], ids: Map[String, String])(implicit logger: Logger) = {
     exitTagsOpt.foreach(exitTags =>
       for ((k, obs) <- exitTags) {
         // either a int or string
