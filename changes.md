@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-### changes in 0.5-SNAPSHOT
+### changes in 0.5
 
 * fix bug when running on Windows, see reading source file in Neo4jFileLoader
 * put back the dependency:  "ch.qos.logback" % "logback-classic" % "1.3.0-alpha4" % Test
