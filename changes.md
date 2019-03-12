@@ -3,6 +3,10 @@ Change Log
 
 ### changes in 0.5-SNAPSHOT
 
+* fix bug when running on Windows, see reading source file in Neo4jFileLoader
+* put back the dependency:  "ch.qos.logback" % "logback-classic" % "1.3.0-alpha4" % Test
+
+
 ### changes in 0.4
 
 * in Neo4jFileLoader restrict processing zip files that contain only .json and .stix entry files.

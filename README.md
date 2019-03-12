@@ -26,7 +26,7 @@ into a Neo4j graph database. To use the latest release add the following depende
 
     libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.4"
 
-To compile and package from source, type:
+To compile and package from the latest source, type:
 
     sbt package
 

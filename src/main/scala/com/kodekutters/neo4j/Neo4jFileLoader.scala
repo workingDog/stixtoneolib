@@ -25,7 +25,8 @@ object Neo4jFileLoader {
     */
   def readBundle(source: InputStream, logger: Option[Logger] = None): Option[Bundle] = {
     // read a STIX bundle from the InputStream
-    val jsondoc = Source.fromInputStream(source).mkString
+    val theSource = Source.fromInputStream(source, "UTF-8")
+    val jsondoc = try theSource.mkString finally theSource.close()
     Option(Json.parse(jsondoc)) match {
       case None => logger.map(_.error("could not parse JSON in file")); None
       case Some(js) =>
@@ -64,7 +65,8 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
   def loadBundleFile(inFile: File): Unit = {
     logger.info("processing file: " + inFile.getCanonicalPath)
     // read a STIX bundle from the input file
-    val jsondoc = Source.fromFile(inFile).mkString
+    val source = Source.fromFile(inFile, "UTF-8")
+    val jsondoc = try source.getLines mkString finally source.close()
     Option(Json.parse(jsondoc)) match {
       case None => logger.error("could not parse JSON in file: " + inFile.getName)
       case Some(js) =>
@@ -116,10 +118,11 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
     */
   def loadLargeTextFile(inFile: File): Unit = {
     logger.info("processing file: " + inFile.getName)
+    val source = Source.fromFile(inFile, "UTF-8")
     // go through the file twice, on first pass process the nodes, on second pass relations
     for (pass <- 1 to 2) {
       // read a STIX object from the inFile, one line at a time
-      for (line <- Source.fromFile(inFile).getLines) {
+      for (line <- source.getLines) {
         Option(Json.parse(line)) match {
           case None => logger.error("could not parse JSON in file: " + inFile + " line: " + line)
           case Some(js) =>
@@ -135,6 +138,7 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
         }
       }
     }
+    source.close()
     loader.close()
   }
 
@@ -160,7 +164,9 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
         // go thru the file twice, on first pass process the nodes, on second pass relations
         for (pass <- 1 to 2) {
           // get the lines from the entry file
-          val inputLines = Source.fromInputStream(rootZip.getInputStream(f)).getLines
+    //      val inputLines = Source.fromInputStream(rootZip.getInputStream(f), "UTF-8").getLines
+          val source = Source.fromInputStream(rootZip.getInputStream(f), "UTF-8")
+          val inputLines = try source.getLines finally source.close()
           // read a Stix object from the inputLines, one line at a time
           for (line <- inputLines) {
             Option(Json.parse(line)) match {
