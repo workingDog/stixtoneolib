@@ -1,12 +1,10 @@
 package com.kodekutters.neo4j
 
 import java.io.{File, InputStream}
-
 import com.kodekutters.stix.{Bundle, _}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 import play.api.libs.json.Json
-
 import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.language.{implicitConversions, postfixOps}
@@ -119,10 +117,11 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
   def loadLargeTextFile(inFile: File): Unit = {
     logger.info("processing file: " + inFile.getName)
     val source = Source.fromFile(inFile, "UTF-8")
+    val inputLines = try source.getLines finally source.close()
     // go through the file twice, on first pass process the nodes, on second pass relations
     for (pass <- 1 to 2) {
       // read a STIX object from the inFile, one line at a time
-      for (line <- source.getLines) {
+      for (line <- inputLines) {
         Option(Json.parse(line)) match {
           case None => logger.error("could not parse JSON in file: " + inFile + " line: " + line)
           case Some(js) =>
@@ -138,7 +137,6 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
         }
       }
     }
-    source.close()
     loader.close()
   }
 

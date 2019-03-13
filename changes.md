@@ -3,8 +3,11 @@ Change Log
 
 ### changes in 0.5
 
-* fix bug when running on Windows, see reading source file in Neo4jFileLoader
-* put back the dependency:  "ch.qos.logback" % "logback-classic" % "1.3.0-alpha4" % Test
+* fix a bug when running on Windows, see reading source file in Neo4jFileLoader
+(basically changed Source.fromFile(inFile) to Source.fromFile(inFile, "UTF-8"))
+
+* include the dependency: "org.slf4j" % "slf4j-nop" % "1.8.0-beta4" % Test
+
 
 
 ### changes in 0.4
