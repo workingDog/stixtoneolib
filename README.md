@@ -24,13 +24,13 @@ STIX-2 bundles in JSON format and zip files.
 **stixtoneolib** is a library for use in Scala applications to convert and load STIX-2 objects 
 into a Neo4j graph database. To use the latest release add the following dependency to your *build.sbt*:
 
-    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.4"
+    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.5"
 
 To compile and package from the latest source, type:
 
     sbt package
 
-This will produce *stixtoneolib-0.5.jar* in the *./target/scala-2.12* directory. 
+This will produce *stixtoneolib-0.6.jar* in the *./target/scala-2.12* directory. 
 See the *build.sbt* file for the required dependencies.
       
 To publish the library to your local (Ivy) repository, simply type:
@@ -39,7 +39,7 @@ To publish the library to your local (Ivy) repository, simply type:
 
 Then put this in your Scala application *build.sbt* file:
 
-    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.5" 
+    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.6" 
        
 ### Usage
 
@@ -70,7 +70,7 @@ which loads files of STIX-2 data into a Neo4j database.
 ### Dependencies and requirements
 
 Depends on the [ScalaStix](https://github.com/workingDog/scalastix) and 
-the [Neo4j Community 3.3.3](https://mvnrepository.com/artifact/org.neo4j/neo4j) jar file.
+the [Neo4j Community 3.5.5](https://mvnrepository.com/artifact/org.neo4j/neo4j) jar file.
 
 See also the *build.sbt* file.
 

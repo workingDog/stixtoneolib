@@ -17,7 +17,7 @@ class ObservablesMaker(neoService: Neo4jDbService) {
 
   val support = new MakerSupport(neoService)
   val extensionsMaker = new ExtensionsMaker(neoService)
-  
+
   /**
     * create the Observables nodes and relations for the parent ObservedData SDO node
     *
@@ -29,7 +29,7 @@ class ObservablesMaker(neoService: Neo4jDbService) {
     // create the observable nodes and relations for each Observable
     for ((k, obs) <- objects) {
       // create the extensions ids
-      val ext_ids: Map[String, String] = (for (s <- obs.extensions.getOrElse(Map.empty).keySet) yield s -> UUID.randomUUID().toString).toMap
+      val ext_ids: Map[String, String] = (for (s <- obs.extensions.getOrElse(Extensions(Map.empty)).extensions.keySet) yield s -> UUID.randomUUID().toString).toMap
       // create the observable node
       val nodeOpt = neoService.transaction {
         val theNode = neoService.graphDB.createNode(label(support.asCleanLabel(obs.`type`)))

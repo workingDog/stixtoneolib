@@ -24,15 +24,14 @@ class ExtensionsMaker(neoService: Neo4jDbService) {
     * @param extMapOpt  the map of Extensions
     * @param ext_ids    the map of Extensions ids
     */
-  def create(sourceNode: Node, extMapOpt: Option[Map[String, Extension]], ext_ids: Map[String, String])(implicit logger: Logger) = {
+  def create(sourceNode: Node, extMapOpt: Option[Extensions], ext_ids: Map[String, String])(implicit logger: Logger) = {
     extMapOpt.foreach(extMap => {
       // for each extension
-      for ((k, extention) <- extMap) {
+      for ((k, extention) <- extMap.extensions) {
         // create the Extension node
         val xNodeOpt = neoService.transaction {
-          val node = neoService.graphDB.createNode(label(support.asCleanLabel(extention.`type`)))
+          val node = neoService.graphDB.createNode(label(support.asCleanLabel(k)))
           node.addLabel(label("Extension"))
-          node.setProperty("type", extention.`type`)
           node.setProperty("extension_id", ext_ids(k))
           node
         }

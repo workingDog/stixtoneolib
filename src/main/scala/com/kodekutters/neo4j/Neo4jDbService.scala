@@ -32,25 +32,26 @@ class Neo4jDbService(dbDir: String, hostAddress: String = "localhost:7687")(impl
     // will create a new database or open an existing one
     val factory = new GraphDatabaseFactory()
     val bolt = new BoltConnector("bolt-neo-access")
-   // Try(graphDB = factory.newEmbeddedDatabase(new File(dbDir))).toOption match {
     Try(
       graphDB = factory.newEmbeddedDatabaseBuilder(new File(dbDir))
         .setConfig(bolt.`type`, "BOLT")
         .setConfig(bolt.enabled, "true")
         .setConfig(bolt.listen_address, hostAddress)
         .setConfig(GraphDatabaseSettings.allow_upgrade, "true")
+        .setConfig(GraphDatabaseSettings.store_internal_log_level, "DEBUG")
+        .setConfig(GraphDatabaseSettings.pagecache_memory, "2G")
         .newGraphDatabase()
     ).toOption match {
       case None =>
         logger.error("cannot access " + dbDir + ", ensure no other process is using this database, and that the directory is writable")
-        throw new IllegalStateException("cannot access " + dbDir)
+        throw new IllegalStateException("--> cannot access " + dbDir + ", ensure no other process is using this database, and that the directory is writable")
 
       case Some(gph) =>
-        registerShutdownHook()
         logger.info("connected to Neo4j " + factory.getEdition + " at: " + dbDir)
         transaction {
           idIndex = graphDB.index.forNodes("id")
         }.getOrElse(logger.error("could not process indexing in DbService.init()"))
+        registerShutdownHook()
     }
   }
 

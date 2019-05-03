@@ -1,13 +1,18 @@
 Change Log
 ==========
 
+
+### changes in 0.6
+
+
+
 ### changes in 0.5
 
 * fix a bug when running on Windows, see reading source file in Neo4jFileLoader
 (basically changed Source.fromFile(inFile) to Source.fromFile(inFile, "UTF-8"))
-
-* include the dependency: "org.slf4j" % "slf4j-nop" % "1.8.0-beta4" % Test
-
+* include the dependency: "org.slf4j" % "slf4j-nop" % "1.7.26"
+* updated to neo4j 3.3.9
+* updated to "scalastix" % "1.0"
 
 
 ### changes in 0.4
