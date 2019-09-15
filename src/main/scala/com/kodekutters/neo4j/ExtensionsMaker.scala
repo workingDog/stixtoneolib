@@ -40,7 +40,7 @@ class ExtensionsMaker(neoService: Neo4jDbService) {
             // create a relation between the parent Observable node and this Extension node
             neoService.transaction {
               sourceNode.createRelationshipTo(xNode, "HAS_EXTENSION")
-            }.getOrElse {logger.error("could not process HAS_EXTENSION relation"); Unit}
+            }.getOrElse {logger.error("could not process HAS_EXTENSION relation"); ()}
 
             // add the specific attributes to the extension node
             extention match {
@@ -120,7 +120,7 @@ class ExtensionsMaker(neoService: Neo4jDbService) {
           support.createHashes(tgtNode, kp.hashes, hashes_ids)
           neoService.transaction {
             fromNode.createRelationshipTo(tgtNode, "HAS_ALTERNATE_DATA_STREAM")
-          }.getOrElse {logger.error("could not process HAS_ALTERNATE_DATA_STREAM relation"); Unit}
+          }.getOrElse {logger.error("could not process HAS_ALTERNATE_DATA_STREAM relation"); ()}
         })
       }
     })
@@ -143,7 +143,7 @@ class ExtensionsMaker(neoService: Neo4jDbService) {
         tgtNodeOpt.foreach(tgtNode => {
           neoService.transaction {
             fromNode.createRelationshipTo(tgtNode, "HAS_EXIF_TAGS")
-          }.getOrElse {logger.error("could not process HAS_EXIF_TAGS relation"); Unit}
+          }.getOrElse {logger.error("could not process HAS_EXIF_TAGS relation"); ()}
         })
       }
     )

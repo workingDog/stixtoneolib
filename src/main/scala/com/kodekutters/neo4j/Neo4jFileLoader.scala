@@ -5,7 +5,7 @@ import com.kodekutters.stix.{Bundle, _}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 import play.api.libs.json.Json
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.io.Source
 import scala.language.{implicitConversions, postfixOps}
 
@@ -86,7 +86,7 @@ class Neo4jFileLoader(dbDir: String, hostAddress: String = "localhost:7687")(imp
     * @param inFile the zip file containing constituent json files each with a bundle of stix objects
     */
   def loadBundleZipFile(inFile: File): Unit = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     logger.info("processing file: " + inFile.getCanonicalPath)
     // get the zip file
     val rootZip = new java.util.zip.ZipFile(inFile)
