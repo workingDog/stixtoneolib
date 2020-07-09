@@ -5,13 +5,13 @@ name := "stixtoneolib"
 
 version := (version in ThisBuild).value
 
-scalaVersion := "2.13.0"
+scalaVersion := "2.13.3"
 
 libraryDependencies ++= Seq(
   "org.neo4j" % "neo4j" % "3.3.9",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "org.slf4j" % "slf4j-nop" % "1.7.26",
-  "com.github.workingDog" %% "scalastix" % "1.1-SNAPSHOT"
+  "com.github.workingDog" %% "scalastix" % "1.1"
 )
 
 homepage := Some(url("https://github.com/workingDog/StixToNeoLib"))

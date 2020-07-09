@@ -1,11 +1,13 @@
 Change Log
 ==========
 
+### changes in 0.7-SNAPSHOT
 
-### changes in 0.6-SNAPSHOT
 
-* updated scala to 2.13.0, sbt to 1.3.0 and associated plugins and dependencies 
+### changes in 0.6
 
+* updated scala to 2.13.3, sbt to 1.3.13 and associated plugins and dependencies 
+* updated to "scalastix" % "1.1"
 
 ### changes in 0.5
 
