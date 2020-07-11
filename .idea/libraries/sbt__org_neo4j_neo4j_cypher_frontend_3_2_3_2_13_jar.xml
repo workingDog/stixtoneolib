@@ -1,11 +1,14 @@
 <component name="libraryTable">
   <library name="sbt: org.neo4j:neo4j-cypher-frontend-3.2:3.2.13:jar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-cypher-frontend-3.2/jars/neo4j-cypher-frontend-3.2-3.2.13.jar!/" />
+      <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/neo4j/neo4j-cypher-frontend-3.2/3.2.13/neo4j-cypher-frontend-3.2-3.2.13.jar!/" />
     </CLASSES>
-    <JAVADOC />
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/neo4j/neo4j-cypher-frontend-3.2/3.2.13/neo4j-cypher-frontend-3.2-3.2.13-javadoc.jar!/" />
+    </JAVADOC>
     <SOURCES>
       <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-cypher-frontend-3.2/srcs/neo4j-cypher-frontend-3.2-3.2.13-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/neo4j/neo4j-cypher-frontend-3.2/3.2.13/neo4j-cypher-frontend-3.2-3.2.13-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

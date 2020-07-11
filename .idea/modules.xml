@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/project-stixtoneolib-build.iml" filepath="$PROJECT_DIR$/.idea/modules/project-stixtoneolib-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/stix-stixtoneolib.iml" filepath="$PROJECT_DIR$/.idea/modules/stix-stixtoneolib.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/stixtoneolib.iml" filepath="$PROJECT_DIR$/.idea/modules/stixtoneolib.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/stixtoneolib-build.iml" filepath="$PROJECT_DIR$/.idea/modules/stixtoneolib-build.iml" />
     </modules>

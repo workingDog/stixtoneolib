@@ -1,11 +1,14 @@
 <component name="libraryTable">
   <library name="sbt: org.neo4j:neo4j-csv:3.3.9:jar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-csv/jars/neo4j-csv-3.3.9.jar!/" />
+      <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/neo4j/neo4j-csv/3.3.9/neo4j-csv-3.3.9.jar!/" />
     </CLASSES>
-    <JAVADOC />
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/neo4j/neo4j-csv/3.3.9/neo4j-csv-3.3.9-javadoc.jar!/" />
+    </JAVADOC>
     <SOURCES>
       <root url="jar://$USER_HOME$/.ivy2/cache/org.neo4j/neo4j-csv/srcs/neo4j-csv-3.3.9-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/neo4j/neo4j-csv/3.3.9/neo4j-csv-3.3.9-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

@@ -26,15 +26,14 @@ into a Neo4j graph database. To use the latest release add the following depende
 
     libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.6"
 
-
-The current source code version is **0.7-SNAPSHOT** using scala 2.13.3. 
+The current source code version is **0.6** using scala 2.13.3. 
 
 To compile and package **stixtoneolib** from source use [SBT](http://www.scala-sbt.org/).
 To compile and generate a jar file from source:
 
     sbt package
 
-This will produce *stixtoneolib-0.7-SNAPSHOT.jar* in the *./target/scala-2.13* directory. 
+This will produce *stixtoneolib-0.6.jar* in the *./target/scala-2.13* directory. 
 See the *build.sbt* file for the required dependencies.
       
 To publish the library to your local (Ivy) repository, simply type:
@@ -43,7 +42,7 @@ To publish the library to your local (Ivy) repository, simply type:
 
 Then put this in your Scala application *build.sbt* file:
 
-    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.7-SNAPSHOT" 
+    libraryDependencies += "com.github.workingDog" %% "stixtoneolib" % "0.6" 
        
 ### Usage
 
@@ -74,11 +73,11 @@ which loads files of STIX-2 data into a Neo4j database.
 ### Dependencies and requirements
 
 Depends on the [ScalaStix](https://github.com/workingDog/scalastix) and 
-the [Neo4j Community 3.5.5](https://mvnrepository.com/artifact/org.neo4j/neo4j) jar file.
+the [Neo4j Community 3.3.9](https://mvnrepository.com/artifact/org.neo4j/neo4j) jar file.
 
 See also the *build.sbt* file.
 
-Neo4j Community Edition should be installed to process the results.
+Neo4j Community Edition server should be installed to process the results.
 
                     
 ### References
